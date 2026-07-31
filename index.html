@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NexusVerse - Embedded Game Hub</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <header class="navbar">
+    <div class="logo">🎮 NexusVerse</div>
+    <div class="nav-actions">
+      <button class="notif-btn" id="notifBtn">🔔 <span id="notifCount">1</span></button>
+      <a href="admin.html" class="admin-link">Admin Upload</a>
+      
+      <!-- Module 1: Auth Buttons -->
+      <div id="authSection">
+        <button id="loginBtn" onclick="openAuthModal()" class="auth-btn">Sign In / Register</button>
+        <div id="userProfile" style="display: none;">
+          👤 <span id="userName">User</span>
+          <button onclick="logout()" class="logout-btn">Logout</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Login/Register Pop-up Modal -->
+  <div id="authModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeAuthModal()">&times;</span>
+      <h3>Welcome to NexusVerse</h3>
+      
+      <div class="form-group">
+        <input type="email" id="authEmail" placeholder="Enter Email">
+        <input type="password" id="authPassword" placeholder="Enter Password">
+      </div>
+
+      <button onclick="signUpEmail()" class="btn-primary">Sign Up</button>
+      <button onclick="loginEmail()" class="btn-secondary">Log In</button>
+      <hr style="margin: 15px 0; border: 0.5px solid #334155;">
+      <button onclick="loginGoogle()" class="btn-google">🌐 Continue with Google</button>
+    </div>
+  </div>
+
+  <main class="main-container">
+
+    <!-- In-Page Embedded Game Player Frame -->
+    <section class="player-section">
+      <div class="iframe-wrapper">
+        <iframe 
+          id="gameFrame" 
+          src="https://play.gamepix.com/2048/embed" 
+          sandbox="allow-scripts allow-same-origin allow-forms"
+          allowfullscreen>
+        </iframe>
+      </div>
+
+      <div class="game-bar">
+        <h2 id="currentGameTitle">2048 Puzzle</h2>
+        <div class="controls">
+          <button onclick="toggleFullscreen()">📺 Fullscreen</button>
+          <button onclick="reloadGame()">🔄 Refresh Game</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Game Selection Grid -->
+    <section class="catalog-section">
+      <h3>🔥 Popular Games</h3>
+      <div class="game-grid">
+        <div class="game-card" onclick="playGame('2048 Puzzle', 'https://play.gamepix.com/2048/embed')">
+          <h4>2048 Puzzle</h4>
+        </div>
+        
+        <div class="game-card" onclick="playGame('Tic Tac Toe', 'https://play.gamepix.com/tic-tac-toe/embed')">
+          <h4>Tic Tac Toe</h4>
+        </div>
+
+        <div class="game-card" onclick="playGame('Hextris', 'https://hextris.io/')">
+          <h4>Hextris</h4>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Link app.js file with type="module" -->
+  <script type="module" src="app.js"></script>
+
+  <!-- Auxiliary JS for UI Controls -->
+  <script>
+    function playGame(title, embedUrl) {
+      document.getElementById('gameFrame').src = embedUrl;
+      document.getElementById('currentGameTitle').innerText = title;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    function toggleFullscreen() {
+      const iframe = document.getElementById('gameFrame');
+      if (iframe.requestFullscreen) iframe.requestFullscreen();
+    }
+    function reloadGame() {
+      const iframe = document.getElementById('gameFrame');
+      iframe.src = iframe.src;
+    }
+  </script>
+</body>
+</html>
