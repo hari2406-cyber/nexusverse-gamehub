@@ -1,34 +1,129 @@
-<!-- Replace the simple <script> tag at the bottom of signup.html with this: -->
-<script type="module">
-  // Import Firebase functions (using the same Firebase config as your app.js)
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-  import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - NexusVerse</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #0f172a;
+            color: #ffffff;
+            font-family: sans-serif;
+            margin: 0;
+        }
+        .signup-card {
+            background: #1e293b;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            width: 100%;
+            max-width: 400px;
+            border: 1px solid #334155;
+        }
+        .signup-card h2 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #38bdf8;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 14px;
+            color: #94a3b8;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #334155;
+            background: #0f172a;
+            color: white;
+            box-sizing: border-box;
+        }
+        .submit-btn {
+            width: 100%;
+            padding: 12px;
+            background: #38bdf8;
+            border: none;
+            border-radius: 6px;
+            color: #0f172a;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .submit-btn:hover {
+            background: #0284c7;
+            color: white;
+        }
+        .back-home {
+            display: block;
+            text-align: center;
+            margin-top: 15px;
+            color: #94a3b8;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .back-home:hover {
+            color: #38bdf8;
+        }
+    </style>
+</head>
+<body>
 
-  // Paste your Firebase Config here (same one from your app.js)
-  const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_PROJECT_ID.appspot.com",
-    messagingSenderId: "SENDER_ID",
-    appId: "APP_ID"
-  };
+    <div class="signup-card">
+        <h2>Create Account</h2>
+        <form id="signupForm">
+            <div class="input-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" placeholder="Enter username" required>
+            </div>
+            <div class="input-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" placeholder="Enter email" required>
+            </div>
+            <div class="input-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" placeholder="Enter password" required>
+            </div>
+            <button type="submit" class="submit-btn">Register</button>
+        </form>
+        <a href="index.html" class="back-home">← Back to NexusVerse</a>
+    </div>
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
+    <!-- Firebase Auth Integration -->
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+      import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+      import { firebaseConfig } from "./app.js";
 
-  document.getElementById('signupForm').addEventListener('submit', (e) => {
-    e.preventDefault();
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
+      // Initialize Firebase using the config exported from your app.js
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
 
-    createUserWithEmailAndPassword(auth, email, password)
-      .then((userCredential) => {
-        alert('Account created successfully!');
-        window.location.href = 'index.html';
-      })
-      .catch((error) => {
-        alert('Registration failed: ' + error.message);
+      document.getElementById('signupForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+
+        createUserWithEmailAndPassword(auth, email, password)
+          .then((userCredential) => {
+            alert('Account created successfully! Redirecting to home page...');
+            window.location.href = 'index.html';
+          })
+          .catch((error) => {
+            alert('Registration error: ' + error.message);
+          });
       });
-  });
-</script>
+    </script>
+</body>
+</html>
