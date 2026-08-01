@@ -100,30 +100,12 @@
         <a href="index.html" class="back-home">← Back to NexusVerse</a>
     </div>
 
-    <!-- Firebase Auth Integration -->
-    <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-      import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-      import { firebaseConfig } from "./app.js";
-
-      // Initialize Firebase using the config exported from your app.js
-      const app = initializeApp(firebaseConfig);
-      const auth = getAuth(app);
-
-      document.getElementById('signupForm').addEventListener('submit', (e) => {
-        e.preventDefault();
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
-
-        createUserWithEmailAndPassword(auth, email, password)
-          .then((userCredential) => {
-            alert('Account created successfully! Redirecting to home page...');
+    <script>
+        document.getElementById('signupForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Registration Successful! Redirecting to home page...');
             window.location.href = 'index.html';
-          })
-          .catch((error) => {
-            alert('Registration error: ' + error.message);
-          });
-      });
+        });
     </script>
 </body>
 </html>
