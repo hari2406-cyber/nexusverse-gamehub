@@ -17,7 +17,10 @@
       
       <!-- Module 1: Auth Buttons -->
       <div id="authSection">
-        <button id="loginBtn" onclick="openAuthModal()" class="auth-btn">Sign In / Register</button>
+        <button id="loginBtn" onclick="openAuthModal()" class="auth-btn">Log In</button>
+        <!-- CHANGED: Direct link to new Sign Up page -->
+        <a href="signup.html" class="auth-btn signup-link-btn" style="text-decoration: none; display: inline-block;">Sign Up</a>
+
         <div id="userProfile" style="display: none;">
           👤 <span id="userName">User</span>
           <button onclick="logout()" class="logout-btn">Logout</button>
@@ -26,7 +29,7 @@
     </div>
   </header>
 
-  <!-- Login/Register Pop-up Modal -->
+  <!-- Log In Pop-up Modal -->
   <div id="authModal" class="modal" style="display: none;">
     <div class="modal-content">
       <span class="close-btn" onclick="closeAuthModal()">&times;</span>
@@ -37,10 +40,14 @@
         <input type="password" id="authPassword" placeholder="Enter Password">
       </div>
 
-      <button onclick="signUpEmail()" class="btn-primary">Sign Up</button>
-      <button onclick="loginEmail()" class="btn-secondary">Log In</button>
+      <button onclick="loginEmail()" class="btn-primary">Log In</button>
       <hr style="margin: 15px 0; border: 0.5px solid #334155;">
       <button onclick="loginGoogle()" class="btn-google">🌐 Continue with Google</button>
+      
+      <!-- ADDED: Redirect link inside modal if user doesn't have an account -->
+      <p style="margin-top: 15px; font-size: 14px; text-align: center;">
+        Don't have an account? <a href="signup.html" style="color: #38bdf8; text-decoration: underline;">Register here</a>
+      </p>
     </div>
   </div>
 
