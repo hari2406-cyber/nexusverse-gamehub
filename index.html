@@ -5,11 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>NexusVerse - Embedded Game Hub</title>
   <link rel="stylesheet" href="styles.css">
-  <style>
-    .muted-iframe {
-      pointer-events: auto;
-    }
-  </style>
 </head>
 <body>
 
@@ -61,8 +56,9 @@
       <div id="iframeWrapper" class="iframe-wrapper">
         <iframe 
           id="gameFrame" 
-          src="https://playcanv.as/p/2O2WE82w/" 
+          src="https://nebezb.com/floppybird/" 
           sandbox="allow-scripts allow-same-origin allow-forms"
+          allow="autoplay"
           loading="lazy"
           allowfullscreen>
         </iframe>
@@ -88,12 +84,12 @@
           <h4>Flappy Bird</h4>
         </div>
         
-        <div class="game-card" onclick="playGame('Swooop 3D', 'https://playcanv.as/p/2O2WE82w/')">
-          <h4>Swooop 3D</h4>
+        <div class="game-card" onclick="playGame('Chrome Dino', 'https://chromedino.com/')">
+          <h4>Chrome Dino</h4>
         </div>
 
-        <div class="game-card" onclick="playGame('Tower Building', 'https://playcanv.as/p/J9oR6C13/')">
-          <h4>Tower Building</h4>
+        <div class="game-card" onclick="playGame('Classic Snake', 'https://playsnake.org/')">
+          <h4>Classic Snake</h4>
         </div>
       </div>
     </section>
@@ -110,7 +106,6 @@
       iframe.src = embedUrl;
       document.getElementById('currentGameTitle').innerText = title;
       
-      // Reset mute state on new game load
       if (isMuted) {
         toggleMute();
       }
@@ -138,36 +133,22 @@
     }
 
     let isMuted = false;
-    let audioCtx = null;
 
     function toggleMute() {
       const iframe = document.getElementById('gameFrame');
       const muteBtn = document.getElementById('muteBtn');
       isMuted = !isMuted;
 
-      try {
-        // Web Audio API Global Mute Hack for embedded Frames
-        if (!audioCtx) {
-          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        }
-        
-        if (isMuted) {
-          iframe.style.opacity = "0.99"; // Force DOM repaint
-          muteBtn.innerText = "🔇 Unmute";
-          // Mute iframe audio stream if accessible
-          if (iframe.contentWindow) {
-            iframe.contentWindow.postMessage({ type: 'mute', value: true }, '*');
-          }
-        } else {
-          iframe.style.opacity = "1";
-          muteBtn.innerText = "🔊 Mute";
-          if (iframe.contentWindow) {
-            iframe.contentWindow.postMessage({ type: 'mute', value: false }, '*');
-          }
-        }
-      } catch (e) {
-        console.log("Cross-origin restriction applied to audio.");
+      if (isMuted) {
+        iframe.removeAttribute("allow");
+        muteBtn.innerText = "🔇 Unmute";
+      } else {
+        iframe.setAttribute("allow", "autoplay");
+        muteBtn.innerText = "🔊 Mute";
       }
+      
+      // Reload frame to apply sound preference change
+      reloadGame();
     }
   </script>
 </body>
