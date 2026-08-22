@@ -56,15 +56,15 @@
       <div id="iframeWrapper" class="iframe-wrapper">
         <iframe 
           id="gameFrame" 
-          src="https://html5.gamedistribution.com/rvvAS300/6f8828b80b2a4d3393911f974cb9b87f/index.html" 
-          sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+          src="https://hextris.io/" 
+          sandbox="allow-scripts allow-same-origin allow-forms"
           loading="lazy"
           allowfullscreen>
         </iframe>
       </div>
 
       <div class="game-bar">
-        <h2 id="currentGameTitle">2048 Puzzle</h2>
+        <h2 id="currentGameTitle">Hextris</h2>
         <!-- Extended Module 2 Game Controls -->
         <div class="controls">
           <button onclick="toggleMute()" id="muteBtn">🔊 Mute</button>
@@ -79,16 +79,16 @@
     <section class="catalog-section">
       <h3>🔥 Popular Games</h3>
       <div class="game-grid">
-        <div class="game-card" onclick="playGame('2048 Puzzle', 'https://html5.gamedistribution.com/rvvAS300/6f8828b80b2a4d3393911f974cb9b87f/index.html')">
-          <h4>2048 Puzzle</h4>
-        </div>
-        
-        <div class="game-card" onclick="playGame('Tic Tac Toe', 'https://html5.gamedistribution.com/264e1ff44d824d5483f3e1b01df498d5/index.html')">
-          <h4>Tic Tac Toe</h4>
-        </div>
-
         <div class="game-card" onclick="playGame('Hextris', 'https://hextris.io/')">
           <h4>Hextris</h4>
+        </div>
+        
+        <div class="game-card" onclick="playGame('Pacman', 'https://pacman-canvas.netlify.app/')">
+          <h4>Pacman</h4>
+        </div>
+
+        <div class="game-card" onclick="playGame('2048 Game', 'https://play2048.co/')">
+          <h4>2048 Game</h4>
         </div>
       </div>
     </section>
