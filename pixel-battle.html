@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pixel Battle - NexusVerse</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+    body {
+      background: #0f172a;
+      color: #f8fafc;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    #gameContainer {
+      position: relative;
+      width: 800px;
+      height: 450px;
+      background: #1e293b;
+      border: 4px solid #38bdf8;
+      border-radius: 12px;
+      box-shadow: 0 0 20px rgba(56, 189, 248, 0.3);
+      overflow: hidden;
+    }
+
+    canvas { display: block; width: 100%; height: 100%; background: #020617; }
+
+    /* UI Overlay Screens */
+    .screen {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: rgba(15, 23, 42, 0.95);
+      z-index: 10;
+    }
+
+    .hidden { display: none !important; }
+
+    h1 { font-size: 3rem; color: #38bdf8; text-shadow: 0 0 10px #0284c7; margin-bottom: 20px; text-transform: uppercase; }
+    h2 { font-size: 1.8rem; color: #f43f5e; margin-bottom: 20px; }
+
+    .menu-btn {
+      width: 220px;
+      padding: 12px 20px;
+      margin: 10px;
+      font-size: 1rem;
+      font-weight: bold;
+      color: #fff;
+      background: #0284c7;
+      border: 2px solid #38bdf8;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-transform: uppercase;
+    }
+
+    .menu-btn:hover { background: #0369a1; transform: scale(1.05); }
+
+    /* Character Selection Slider */
+    .carousel {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      margin-bottom: 25px;
+    }
+
+    .char-card {
+      width: 200px;
+      height: 250px;
+      background: #1e293b;
+      border: 3px solid #334155;
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 15px;
+      text-align: center;
+      transition: all 0.3s;
+    }
+
+    .char-card.active { border-color: #38bdf8; box-shadow: 0 0 15px #38bdf8; transform: scale(1.05); }
+    .char-card.locked { opacity: 0.5; border-color: #64748b; }
+
+    .char-avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+      background: #334155;
+    }
+
+    .nav-arrow {
+      font-size: 2rem;
+      color: #38bdf8;
+      cursor: pointer;
+      padding: 10px;
+    }
+
+    /* HUD */
+    #hud {
+      position: absolute;
+      top: 15px;
+      left: 20px;
+      right: 20px;
+      display: flex;
+      justify-content: space-between;
+      z-index: 5;
+    }
+
+    .bar-container { width: 300px; background: #334155; height: 24px; border-radius: 12px; border: 2px solid #fff; overflow: hidden; }
+    .bar-fill { height: 100%; transition: width 0.2s; }
+    .hp-player { background: #22c55e; width: 100%; }
+    .hp-boss { background: #ef4444; width: 100%; }
+  </style>
+</head>
+<body>
+
+  <div id="gameContainer">
+
+    <!-- HUD -->
+    <div id="hud" class="hidden">
+      <div>
+        <div id="pName" style="font-weight: bold; margin-bottom: 4px;">Player</div>
+        <div class="bar-container"><div id="playerHp" class="bar-fill hp-player"></div></div>
+      </div>
+      <div style="text-align: right;">
+        <div id="bName" style="font-weight: bold; margin-bottom: 4px; color: #ef4444;">BOSS</div>
+        <div class="bar-container"><div id="bossHp" class="bar-fill hp-boss"></div></div>
+      </div>
+    </div>
+
+    <canvas id="battleCanvas" width="800" height="450"></canvas>
+
+    <!-- 1. START MENU SCREEN -->
+    <div id="startScreen" class="screen">
+      <h1>Pixel Battle</h1>
+      <button class="menu-btn" onclick="openCharSelect()">New Game</button>
+      <button class="menu-btn" onclick="continueGame()">Continue</button>
+      <button class="menu-btn" onclick="openCustom()">Custom Play</button>
+    </div>
+
+    <!-- 2. CHARACTER SELECTION SCREEN -->
+    <div id="charScreen" class="screen hidden">
+      <h2>Select Fighter</h2>
+      <div class="carousel">
+        <span class="nav-arrow" onclick="prevChar()">&#10094;</span>
+        <div id="charCard" class="char-card active">
+          <div id="charAvatar" class="char-avatar">🐐</div>
+          <h3 id="charTitle">GOAT Hari</h3>
+          <p id="charDesc" style="font-size: 12px; color: #94a3b8; margin-top: 8px;">High speed fighter with lightning combos.</p>
+        </div>
+        <span class="nav-arrow" onclick="nextChar()">&#10095;</span>
+      </div>
+      <button id="selectBtn" class="menu-btn" onclick="startBattle()">Select Fighter</button>
+      <button class="menu-btn" style="background: #475569;" onclick="showScreen('startScreen')">Back</button>
+    </div>
+
+    <!-- 3. CUSTOM PLAY SCREEN (PLACEHOLDER) -->
+    <div id="customScreen" class="screen hidden">
+      <h2>Custom Play</h2>
+      <p style="color: #94a3b8; margin-bottom: 20px;">Mode parameters coming soon!</p>
+      <button class="menu-btn" onclick="showScreen('startScreen')">Back</button>
+    </div>
+
+    <!-- 4. GAME OVER SCREEN -->
+    <div id="gameOverScreen" class="screen hidden">
+      <h1 id="resultTitle">Victory!</h1>
+      <button class="menu-btn" onclick="showScreen('startScreen')">Main Menu</button>
+    </div>
+
+  </div>
+
+  <script>
+    const canvas = document.getElementById('battleCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // Fighter Roster Data
+    const roster = [
+      { id: 1, name: "GOAT Hari", desc: "Special: Matrix Coding Blast", color: "#38bdf8", icon: "🐐", playable: true },
+      { id: 2, name: "The Greatest Raj Sir", desc: "HOD of CS | Special: Red-Black Tree Combo", color: "#f59e0b", icon: "👑", playable: true },
+      { id: 3, name: "Coming Soon", desc: "Next Challenger Locked", color: "#475569", icon: "🔒", playable: false }
+    ];
+
+    let currentCharIdx = 0;
+    let selectedFighter = null;
+    let gameLoopId = null;
+
+    // Game Entities
+    let player, boss;
+
+    function showScreen(id) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+      document.getElementById('hud').classList.add('hidden');
+      if (id) document.getElementById(id).classList.remove('hidden');
+    }
+
+    function openCharSelect() {
+      currentCharIdx = 0;
+      updateCharCard();
+      showScreen('charScreen');
+    }
+
+    function updateCharCard() {
+      const char = roster[currentCharIdx];
+      const card = document.getElementById('charCard');
+      document.getElementById('charAvatar').innerText = char.icon;
+      document.getElementById('charTitle').innerText = char.name;
+      document.getElementById('charDesc').innerText = char.desc;
+
+      const btn = document.getElementById('selectBtn');
+      if (char.playable) {
+        card.classList.remove('locked');
+        btn.disabled = false;
+        btn.style.opacity = "1";
+      } else {
+        card.classList.add('locked');
+        btn.disabled = true;
+        btn.style.opacity = "0.5";
+      }
+    }
+
+    function nextChar() {
+      currentCharIdx = (currentCharIdx + 1) % roster.length;
+      updateCharCard();
+    }
+
+    function prevChar() {
+      currentCharIdx = (currentCharIdx - 1 + roster.length) % roster.length;
+      updateCharCard();
+    }
+
+    function continueGame() {
+      const last = localStorage.getItem('nexus_last_fighter');
+      if (last) {
+        selectedFighter = JSON.parse(last);
+        startBattle();
+      } else {
+        alert("No saved history found! Starting new game.");
+        openCharSelect();
+      }
+    }
+
+    function openCustom() {
+      showScreen('customScreen');
+    }
+
+    // Engine Core
+    function startBattle() {
+      if (!selectedFighter) selectedFighter = roster[currentCharIdx];
+      localStorage.setItem('nexus_last_fighter', JSON.stringify(selectedFighter));
+
+      showScreen(null);
+      document.getElementById('hud').classList.remove('hidden');
+      document.getElementById('pName').innerText = selectedFighter.name;
+
+      player = {
+        x: 100, y: 300, w: 40, h: 60,
+        color: selectedFighter.color,
+        hp: 100, maxHp: 100,
+        vx: 0, vy: 0, isAttacking: false
+      };
+
+      boss = {
+        x: 650, y: 280, w: 60, h: 80,
+        color: "#ef4444",
+        hp: 150, maxHp: 150,
+        vx: -1.5
+      };
+
+      window.addEventListener('keydown', handleInput);
+      if (gameLoopId) cancelAnimationFrame(gameLoopId);
+      gameLoop();
+    }
+
+    function handleInput(e) {
+      if (!player) return;
+      if (e.key === 'ArrowRight' || e.key === 'd') player.x += 15;
+      if (e.key === 'ArrowLeft' || e.key === 'a') player.x -= 15;
+      if (e.key === ' ' || e.key === 'f') attack();
+    }
+
+    function attack() {
+      player.isAttacking = true;
+      if (Math.abs(player.x - boss.x) < 70) {
+        boss.hp -= 15;
+        if (boss.hp < 0) boss.hp = 0;
+      }
+      setTimeout(() => player.isAttacking = false, 200);
+    }
+
+    function update() {
+      // Simple Boss AI Movement
+      boss.x += boss.vx;
+      if (boss.x < 500 || boss.x > 700) boss.vx *= -1;
+
+      // Boss Damage Check
+      if (Math.abs(player.x - boss.x) < 40) {
+        player.hp -= 0.2;
+        if (player.hp < 0) player.hp = 0;
+      }
+
+      // Update Health Bars
+      document.getElementById('playerHp').style.width = (player.hp / player.maxHp * 100) + '%';
+      document.getElementById('bossHp').style.width = (boss.hp / boss.maxHp * 100) + '%';
+
+      // Win/Loss check
+      if (player.hp <= 0) endGame("Defeat!");
+      if (boss.hp <= 0) endGame("Victory!");
+    }
+
+    function render() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Arena Floor
+      ctx.fillStyle = "#1e293b";
+      ctx.fillRect(0, 360, canvas.width, 90);
+
+      // Draw Player
+      ctx.fillStyle = player.color;
+      ctx.fillRect(player.x, player.y, player.w, player.h);
+
+      // Attack Effect
+      if (player.isAttacking) {
+        ctx.fillStyle = "#f59e0b";
+        ctx.fillRect(player.x + player.w, player.y + 15, 30, 20);
+      }
+
+      // Draw Boss
+      ctx.fillStyle = boss.color;
+      ctx.fillRect(boss.x, boss.y, boss.w, boss.h);
+    }
+
+    function gameLoop() {
+      update();
+      render();
+      if (player && player.hp > 0 && boss.hp > 0) {
+        gameLoopId = requestAnimationFrame(gameLoop);
+      }
+    }
+
+    function endGame(title) {
+      document.getElementById('resultTitle').innerText = title;
+      showScreen('gameOverScreen');
+    }
+  </script>
+</body>
+</html>
