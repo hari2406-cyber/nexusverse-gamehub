@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cyber Blade - NexusVerse</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&display=swap');
+
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+    body {
+      background: #020617;
+      color: #00f0ff;
+      font-family: 'Orbitron', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    #gameWrapper {
+      position: relative;
+      width: 900px;
+      height: 500px;
+      border: 3px solid #00f0ff;
+      border-radius: 12px;
+      box-shadow: 0 0 30px rgba(0, 240, 255, 0.4);
+      overflow: hidden;
+      background: #000;
+    }
+
+    canvas { display: block; width: 100%; height: 100%; }
+
+    #webcamBox {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      width: 140px;
+      height: 105px;
+      border: 2px solid #ff007f;
+      border-radius: 8px;
+      overflow: hidden;
+      z-index: 10;
+      background: #000;
+    }
+
+    #webcam {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform: scaleX(-1);
+    }
+
+    #hud {
+      position: absolute;
+      top: 15px;
+      left: 20px;
+      z-index: 10;
+      display: flex;
+      gap: 30px;
+      font-size: 1.1rem;
+      text-shadow: 0 0 10px #00f0ff;
+    }
+
+    .btn-start {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      padding: 15px 35px;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.2rem;
+      color: #020617;
+      background: #00f0ff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 0 20px #00f0ff;
+      z-index: 20;
+      font-weight: 900;
+    }
+  </style>
+
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+</head>
+<body>
+
+  <div id="gameWrapper">
+    <div id="webcamBox">
+      <video id="webcam" autoplay playsinline></video>
+    </div>
+
+    <div id="hud">
+      <div>SCORE: <span id="scoreVal" style="color: #fff;">0</span></div>
+      <div>LIVES: <span id="livesVal" style="color: #ff007f;">❤❤❤</span></div>
+    </div>
+
+    <button id="startBtn" class="btn-start" onclick="initCameraAndGame()">START CYBER BLADE</button>
+
+    <canvas id="gameCanvas" width="900" height="500"></canvas>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const videoElement = document.getElementById('webcam');
+
+    let camera, hands;
+    let score = 0, lives = 3;
+    let isGameRunning = false;
+
+    let bladeTrail = [];
+    let targets = [];
+    let particles = [];
+    let lastHandPos = null;
+
+    function initHandTracking() {
+      hands = new Hands({
+        locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+      });
+
+      hands.setOptions({
+        maxNumHands: 1,
+        modelComplexity: 1,
+        minDetectionConfidence: 0.6,
+        minTrackingConfidence: 0.6
+      });
+
+      hands.onResults(onHandResults);
+
+      camera = new Camera(videoElement, {
+        onFrame: async () => { await hands.send({ image: videoElement }); },
+        width: 320, height: 240
+      });
+    }
+
+    function onHandResults(results) {
+      if (!results.multiHandLandmarks || results.multiHandLandmarks.length === 0) {
+        lastHandPos = null;
+        return;
+      }
+
+      const landmark = results.multiHandLandmarks[0][8]; // Index Finger Tip
+      // Mirroring X mapping
+      const x = (1 - landmark.x) * canvas.width;
+      const y = landmark.y * canvas.height;
+
+      bladeTrail.push({ x, y, time: Date.now() });
+      checkSlices(x, y);
+      lastHandPos = { x, y };
+    }
+
+    function initCameraAndGame() {
+      document.getElementById('startBtn').style.display = 'none';
+      initHandTracking();
+      camera.start();
+      isGameRunning = true;
+      gameLoop();
+    }
+
+    function spawnTarget() {
+      const isBomb = Math.random() < 0.25;
+      targets.push({
+        x: Math.random() * (canvas.width - 200) + 100,
+        y: canvas.height + 30,
+        vx: (Math.random() - 0.5) * 4,
+        vy: -(Math.random() * 4 + 11),
+        radius: isBomb ? 22 : 28,
+        isBomb: isBomb,
+        color: isBomb ? '#ff0055' : '#00f0ff'
+      });
+    }
+
+    function createSplatter(x, y, color) {
+      for (let i = 0; i < 15; i++) {
+        particles.push({
+          x, y,
+          vx: (Math.random() - 0.5) * 10,
+          vy: (Math.random() - 0.5) * 10,
+          radius: Math.random() * 4 + 2,
+          color, life: 1.0
+        });
+      }
+    }
+
+    function checkSlices(hx, hy) {
+      if (!lastHandPos) return;
+
+      targets.forEach((t, index) => {
+        const dist = Math.hypot(t.x - hx, t.y - hy);
+        if (dist < t.radius) {
+          if (t.isBomb) {
+            lives--;
+            updateLivesDisplay();
+            createSplatter(t.x, t.y, '#ff0055');
+            targets.splice(index, 1);
+            if (lives <= 0) gameOver();
+          } else {
+            score += 10;
+            document.getElementById('scoreVal').innerText = score;
+            createSplatter(t.x, t.y, '#00f0ff');
+            targets.splice(index, 1);
+          }
+        }
+      });
+    }
+
+    function updateLivesDisplay() {
+      let str = "";
+      for (let i = 0; i < lives; i++) str += "❤";
+      document.getElementById('livesVal').innerText = str || "DEAD";
+    }
+
+    function update() {
+      // Clear older blade trail points
+      const now = Date.now();
+      bladeTrail = bladeTrail.filter(pt => now - pt.time < 150);
+
+      // Spawn Targets
+      if (Math.random() < 0.03) spawnTarget();
+
+      // Targets Physics
+      targets.forEach((t, idx) => {
+        t.x += t.vx;
+        t.y += t.vy;
+        t.vy += 0.25; // Gravity
+
+        // Missed target penalty
+        if (t.y > canvas.height + 50 && t.vy > 0) {
+          if (!t.isBomb) {
+            lives--;
+            updateLivesDisplay();
+            if (lives <= 0) gameOver();
+          }
+          targets.splice(idx, 1);
+        }
+      });
+
+      // Particles Physics
+      particles.forEach((p, idx) => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life -= 0.03;
+        if (p.life <= 0) particles.splice(idx, 1);
+      });
+    }
+
+    function render() {
+      ctx.fillStyle = "#020617";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Render Targets
+      targets.forEach(t => {
+        ctx.beginPath();
+        ctx.arc(t.x, t.y, t.radius, 0, Math.PI * 2);
+        ctx.fillStyle = t.color;
+        ctx.shadowColor = t.color;
+        ctx.shadowBlur = 15;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      });
+
+      // Render Splatter Particles
+      particles.forEach(p => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = Math.max(0, p.life);
+        ctx.fill();
+        ctx.globalAlpha = 1.0;
+      });
+
+      // Render Cyber Blade Trail
+      if (bladeTrail.length > 1) {
+        ctx.beginPath();
+        ctx.moveTo(bladeTrail[0].x, bladeTrail[0].y);
+        for (let i = 1; i < bladeTrail.length; i++) {
+          ctx.lineTo(bladeTrail[i].x, bladeTrail[i].y);
+        }
+        ctx.strokeStyle = "#00f0ff";
+        ctx.lineWidth = 6;
+        ctx.shadowColor = "#00f0ff";
+        ctx.shadowBlur = 20;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+      }
+    }
+
+    function gameLoop() {
+      if (!isGameRunning) return;
+      update();
+      render();
+      requestAnimationFrame(gameLoop);
+    }
+
+    function gameOver() {
+      isGameRunning = false;
+      ctx.fillStyle = "rgba(2, 6, 23, 0.9)";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.font = "30px 'Orbitron'";
+      ctx.fillStyle = "#ff0055";
+      ctx.textAlign = "center";
+      ctx.fillText("SYSTEM CRITICAL: GAME OVER", canvas.width / 2, canvas.height / 2 - 20);
+
+      ctx.font = "16px 'Orbitron'";
+      ctx.fillStyle = "#00f0ff";
+      ctx.fillText(`FINAL SCORE: ${score}`, canvas.width / 2, canvas.height / 2 + 20);
+
+      document.getElementById('startBtn').innerText = "RESTART CYBER BLADE";
+      document.getElementById('startBtn').style.display = 'block';
+
+      // Reset
+      targets = []; particles = []; bladeTrail = []; score = 0; lives = 3;
+      document.getElementById('scoreVal').innerText = "0";
+      updateLivesDisplay();
+    }
+  </script>
+</body>
+</html>
