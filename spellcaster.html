@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spellcaster Arena - NexusVerse</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&display=swap');
+
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+    body {
+      background: #020617;
+      color: #a855f7;
+      font-family: 'Orbitron', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    #gameWrapper {
+      position: relative;
+      width: 900px;
+      height: 500px;
+      border: 3px solid #a855f7;
+      border-radius: 12px;
+      box-shadow: 0 0 30px rgba(168, 85, 247, 0.4);
+      overflow: hidden;
+      background: #000;
+    }
+
+    canvas { display: block; width: 100%; height: 100%; }
+
+    #webcamBox {
+      position: absolute;
+      top: 15px; right: 15px;
+      width: 140px; height: 105px;
+      border: 2px solid #38bdf8;
+      border-radius: 8px;
+      overflow: hidden;
+      z-index: 10;
+      background: #000;
+    }
+
+    #webcam { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+
+    #hud {
+      position: absolute;
+      top: 15px; left: 20px;
+      z-index: 10;
+      display: flex; gap: 30px;
+      font-size: 1.1rem;
+      text-shadow: 0 0 10px #a855f7;
+    }
+
+    #tutorialBanner {
+      position: absolute;
+      bottom: 20px; left: 50%;
+      transform: translateX(-50%);
+      background: rgba(2, 6, 23, 0.9);
+      border: 2px solid #a855f7;
+      padding: 12px 25px;
+      border-radius: 20px;
+      font-size: 0.95rem;
+      color: #fff;
+      text-align: center;
+      z-index: 15;
+      box-shadow: 0 0 15px rgba(168, 85, 247, 0.4);
+    }
+
+    .btn-container {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      display: flex; flex-direction: column; gap: 15px;
+      z-index: 20;
+    }
+
+    .btn-main {
+      padding: 15px 35px;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.1rem;
+      color: #020617;
+      background: #a855f7;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 0 20px #a855f7;
+      font-weight: 900;
+      transition: transform 0.2s;
+    }
+
+    .btn-main:hover { transform: scale(1.05); }
+
+    .btn-secondary {
+      background: transparent;
+      color: #a855f7;
+      border: 2px solid #a855f7;
+      box-shadow: none;
+    }
+
+    .hidden { display: none !important; }
+  </style>
+
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+</head>
+<body>
+
+  <div id="gameWrapper">
+    <div id="webcamBox">
+      <video id="webcam" autoplay playsinline></video>
+    </div>
+
+    <div id="hud">
+      <div>SCORE: <span id="scoreVal" style="color: #fff;">0</span></div>
+      <div>SPELL: <span id="activeSpell" style="color: #38bdf8;">NONE</span></div>
+    </div>
+
+    <!-- Tutorial Banner -->
+    <div id="tutorialBanner" class="hidden">
+      <span id="tutorialText">STEP 1: Open your hand 🖐️ (Open Palm) to charge a Fireball!</span>
+    </div>
+
+    <!-- Menu Buttons -->
+    <div id="menuButtons" class="btn-container">
+      <button class="btn-main" onclick="startMode('GAME')">ENTER SPELLCASTER ARENA</button>
+      <button class="btn-main btn-secondary" onclick="startMode('TUTORIAL')">PLAYABLE TUTORIAL</button>
+    </div>
+
+    <canvas id="gameCanvas" width="900" height="500"></canvas>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const videoElement = document.getElementById('webcam');
+
+    let camera, hands;
+    let score = 0;
+    let isGameRunning = false;
+    let isTutorialMode = false;
+    let tutorialStep = 1;
+
+    let spells = [];
+    let enemies = [];
+    let particles = [];
+    
+    let handX = canvas.width / 2;
+    let handY = canvas.height / 2;
+    let currentGesture = "NONE";
+    let lastCastTime = 0;
+
+    function initHandTracking() {
+      hands = new Hands({
+        locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+      });
+
+      hands.setOptions({
+        maxNumHands: 1,
+        modelComplexity: 1,
+        minDetectionConfidence: 0.6,
+        minTrackingConfidence: 0.6
+      });
+
+      hands.onResults(onHandResults);
+
+      camera = new Camera(videoElement, {
+        onFrame: async () => { await hands.send({ image: videoElement }); },
+        width: 320, height: 240
+      });
+    }
+
+    function onHandResults(results) {
+      if (!results.multiHandLandmarks || results.multiHandLandmarks.length === 0) {
+        currentGesture = "NONE";
+        document.getElementById('activeSpell').innerText = "NONE";
+        return;
+      }
+
+      const landmarks = results.multiHandLandmarks[0];
+      handX = (1 - landmarks[9].x) * canvas.width;
+      handY = landmarks[9].y * canvas.height;
+
+      // Detect Gesture
+      const tips = [8, 12, 16, 20];
+      let raisedCount = 0;
+      tips.forEach(t => {
+        if (landmarks[t].y < landmarks[t - 2].y) raisedCount++;
+      });
+
+      const now = Date.now();
+      if (raisedCount >= 4) {
+        currentGesture = "FIREBALL";
+        if (now - lastCastTime > 300) castSpell("FIREBALL", "#f97316", 8);
+      } else if (raisedCount === 0) {
+        currentGesture = "VOID STRIKE";
+        if (now - lastCastTime > 400) castSpell("VOID", "#a855f7", 12);
+      } else if (raisedCount === 2) {
+        currentGesture = "LIGHTNING";
+        if (now - lastCastTime > 200) castSpell("LIGHTNING", "#38bdf8", 6);
+      }
+
+      document.getElementById('activeSpell').innerText = currentGesture;
+
+      // Tutorial Step Checks
+      if (isTutorialMode) {
+        if (tutorialStep === 1 && currentGesture === "FIREBALL") {
+          advanceTutorialStep(2, "STEP 2: Make a Fist ✊ (Closed Fist) for Void Strike!");
+        } else if (tutorialStep === 2 && currentGesture === "VOID STRIKE") {
+          advanceTutorialStep(3, "STEP 3: Show Peace Sign ✌️ (2 Fingers) for Lightning!");
+        } else if (tutorialStep === 3 && currentGesture === "LIGHTNING") {
+          advanceTutorialStep(4, "STEP 4: Destroy the target dark orb!");
+          spawnTutorialEnemy();
+        }
+      }
+    }
+
+    function startMode(mode) {
+      document.getElementById('menuButtons').style.display = 'none';
+      isTutorialMode = (mode === 'TUTORIAL');
+
+      if (isTutorialMode) {
+        tutorialStep = 1;
+        document.getElementById('tutorialBanner').classList.remove('hidden');
+        document.getElementById('tutorialText').innerText = "STEP 1: Open your hand 🖐️ (Open Palm) to cast a Fireball!";
+      } else {
+        document.getElementById('tutorialBanner').classList.add('hidden');
+      }
+
+      if (!camera) {
+        initHandTracking();
+        camera.start();
+      }
+
+      isGameRunning = true;
+      gameLoop();
+    }
+
+    function advanceTutorialStep(step, text) {
+      tutorialStep = step;
+      document.getElementById('tutorialText').innerText = text;
+    }
+
+    function spawnTutorialEnemy() {
+      enemies = [{
+        x: canvas.width / 2, y: 100,
+        radius: 22, speed: 0, hp: 10
+      }];
+    }
+
+    function castSpell(type, color, radius) {
+      spells.push({
+        x: handX, y: handY,
+        vx: 0, vy: -9,
+        radius: radius,
+        color: color,
+        type: type
+      });
+      lastCastTime = Date.now();
+    }
+
+    function spawnEnemy() {
+      enemies.push({
+        x: Math.random() * (canvas.width - 100) + 50,
+        y: -30,
+        radius: 20 + Math.random() * 10,
+        speed: 1.5 + Math.random() * 1.5,
+        hp: 20
+      });
+    }
+
+    function createExplosion(x, y, color) {
+      for (let i = 0; i < 12; i++) {
+        particles.push({
+          x, y,
+          vx: (Math.random() - 0.5) * 8,
+          vy: (Math.random() - 0.5) * 8,
+          radius: Math.random() * 3 + 1,
+          color, life: 1.0
+        });
+      }
+    }
+
+    function update() {
+      if (!isTutorialMode && Math.random() < 0.025) spawnEnemy();
+
+      // Move Spells
+      spells.forEach((s, sIdx) => {
+        s.y += s.vy;
+
+        // Collision with Enemies
+        enemies.forEach((e, eIdx) => {
+          const dist = Math.hypot(s.x - e.x, s.y - e.y);
+          if (dist < s.radius + e.radius) {
+            e.hp -= 10;
+            createExplosion(s.x, s.y, s.color);
+            spells.splice(sIdx, 1);
+
+            if (e.hp <= 0) {
+              score += 20;
+              document.getElementById('scoreVal').innerText = score;
+              createExplosion(e.x, e.y, "#ef4444");
+              enemies.splice(eIdx, 1);
+
+              if (isTutorialMode && tutorialStep === 4) {
+                advanceTutorialStep(5, "TUTORIAL COMPLETE! Entering Main Arena...");
+                setTimeout(() => {
+                  isTutorialMode = false;
+                  document.getElementById('tutorialBanner').classList.add('hidden');
+                  score = 0;
+                  document.getElementById('scoreVal').innerText = "0";
+                }, 2000);
+              }
+            }
+          }
+        });
+      });
+
+      spells = spells.filter(s => s.y > -20);
+
+      // Move Enemies
+      enemies.forEach((e, eIdx) => {
+        e.y += e.speed;
+        if (e.y > canvas.height + 30 && !isTutorialMode) gameOver();
+      });
+
+      // Move Particles
+      particles.forEach((p, pIdx) => {
+        p.x += p.vx; p.y += p.vy;
+        p.life -= 0.04;
+        if (p.life <= 0) particles.splice(pIdx, 1);
+      });
+    }
+
+    function render() {
+      ctx.fillStyle = "#020617";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Caster Cursor
+      ctx.beginPath();
+      ctx.arc(handX, handY, 15, 0, Math.PI * 2);
+      ctx.strokeStyle = "#a855f7";
+      ctx.lineWidth = 3;
+      ctx.shadowColor = "#a855f7";
+      ctx.shadowBlur = 15;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      // Spells
+      spells.forEach(s => {
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.radius, 0, Math.PI * 2);
+        ctx.fillStyle = s.color;
+        ctx.shadowColor = s.color;
+        ctx.shadowBlur = 15;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      });
+
+      // Enemies
+      enemies.forEach(e => {
+        ctx.beginPath();
+        ctx.arc(e.x, e.y, e.radius, 0, Math.PI * 2);
+        ctx.fillStyle = "#ef4444";
+        ctx.shadowColor = "#ef4444";
+        ctx.shadowBlur = 10;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      });
+
+      // Particles
+      particles.forEach(p => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = Math.max(0, p.life);
+        ctx.fill();
+        ctx.globalAlpha = 1.0;
+      });
+    }
+
+    function gameLoop() {
+      if (!isGameRunning) return;
+      update();
+      render();
+      requestAnimationFrame(gameLoop);
+    }
+
+    function gameOver() {
+      isGameRunning = false;
+      ctx.fillStyle = "rgba(2, 6, 23, 0.9)";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.font = "30px 'Orbitron'";
+      ctx.fillStyle = "#ef4444";
+      ctx.textAlign = "center";
+      ctx.fillText("ARENA OVERRUN: GAME OVER", canvas.width / 2, canvas.height / 2 - 20);
+
+      ctx.font = "16px 'Orbitron'";
+      ctx.fillStyle = "#a855f7";
+      ctx.fillText(`FINAL SCORE: ${score}`, canvas.width / 2, canvas.height / 2 + 20);
+
+      document.getElementById('menuButtons').style.display = 'flex';
+      spells = []; enemies = []; particles = []; score = 0;
+      document.getElementById('scoreVal').innerText = "0";
+    }
+  </script>
+</body>
+</html>
