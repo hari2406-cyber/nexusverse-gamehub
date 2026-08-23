@@ -35,10 +35,8 @@
 
     #webcamBox {
       position: absolute;
-      top: 15px;
-      right: 15px;
-      width: 140px;
-      height: 105px;
+      top: 15px; right: 15px;
+      width: 140px; height: 105px;
       border: 2px solid #ff007f;
       border-radius: 8px;
       overflow: hidden;
@@ -46,40 +44,65 @@
       background: #000;
     }
 
-    #webcam {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      transform: scaleX(-1);
-    }
+    #webcam { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
 
     #hud {
       position: absolute;
-      top: 15px;
-      left: 20px;
+      top: 15px; left: 20px;
       z-index: 10;
-      display: flex;
-      gap: 30px;
+      display: flex; gap: 30px;
       font-size: 1.1rem;
       text-shadow: 0 0 10px #00f0ff;
     }
 
-    .btn-start {
+    /* Tutorial Banner */
+    #tutorialBanner {
+      position: absolute;
+      bottom: 20px; left: 50%;
+      transform: translateX(-50%);
+      background: rgba(2, 6, 23, 0.9);
+      border: 2px solid #00f0ff;
+      padding: 12px 25px;
+      border-radius: 20px;
+      font-size: 1rem;
+      color: #fff;
+      text-align: center;
+      z-index: 15;
+      box-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
+    }
+
+    .btn-container {
       position: absolute;
       top: 50%; left: 50%;
       transform: translate(-50%, -50%);
+      display: flex; flex-direction: column; gap: 15px;
+      z-index: 20;
+    }
+
+    .btn-main {
       padding: 15px 35px;
       font-family: 'Orbitron', sans-serif;
-      font-size: 1.2rem;
+      font-size: 1.1rem;
       color: #020617;
       background: #00f0ff;
       border: none;
       border-radius: 8px;
       cursor: pointer;
       box-shadow: 0 0 20px #00f0ff;
-      z-index: 20;
       font-weight: 900;
+      transition: transform 0.2s;
     }
+
+    .btn-main:hover { transform: scale(1.05); }
+
+    .btn-secondary {
+      background: transparent;
+      color: #00f0ff;
+      border: 2px solid #00f0ff;
+      box-shadow: none;
+    }
+
+    .hidden { display: none !important; }
   </style>
 
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
@@ -97,7 +120,16 @@
       <div>LIVES: <span id="livesVal" style="color: #ff007f;">❤❤❤</span></div>
     </div>
 
-    <button id="startBtn" class="btn-start" onclick="initCameraAndGame()">START CYBER BLADE</button>
+    <!-- Interactive Tutorial Banner -->
+    <div id="tutorialBanner" class="hidden">
+      <span id="tutorialText">STEP 1: Point your index finger to control the blade!</span>
+    </div>
+
+    <!-- Main Menu Buttons -->
+    <div id="menuButtons" class="btn-container">
+      <button class="btn-main" onclick="startMode('GAME')">START CYBER BLADE</button>
+      <button class="btn-main btn-secondary" onclick="startMode('TUTORIAL')">PLAYABLE TUTORIAL</button>
+    </div>
 
     <canvas id="gameCanvas" width="900" height="500"></canvas>
   </div>
@@ -110,6 +142,8 @@
     let camera, hands;
     let score = 0, lives = 3;
     let isGameRunning = false;
+    let isTutorialMode = false;
+    let tutorialStep = 1;
 
     let bladeTrail = [];
     let targets = [];
@@ -142,22 +176,56 @@
         return;
       }
 
-      const landmark = results.multiHandLandmarks[0][8]; // Index Finger Tip
-      // Mirroring X mapping
+      const landmark = results.multiHandLandmarks[0][8];
       const x = (1 - landmark.x) * canvas.width;
       const y = landmark.y * canvas.height;
 
       bladeTrail.push({ x, y, time: Date.now() });
       checkSlices(x, y);
       lastHandPos = { x, y };
+
+      // Tutorial Step 1 Trigger
+      if (isTutorialMode && tutorialStep === 1) {
+        advanceTutorialStep(2, "STEP 2: Slice the floating BLUE Target!");
+        spawnTutorialTarget(false); // Stationary blue target
+      }
     }
 
-    function initCameraAndGame() {
-      document.getElementById('startBtn').style.display = 'none';
-      initHandTracking();
-      camera.start();
+    function startMode(mode) {
+      document.getElementById('menuButtons').style.display = 'none';
+      isTutorialMode = (mode === 'TUTORIAL');
+      
+      if (isTutorialMode) {
+        tutorialStep = 1;
+        document.getElementById('tutorialBanner').classList.remove('hidden');
+        document.getElementById('tutorialText').innerText = "STEP 1: Point your index finger at the screen to activate your blade!";
+      } else {
+        document.getElementById('tutorialBanner').classList.add('hidden');
+      }
+
+      if (!camera) {
+        initHandTracking();
+        camera.start();
+      }
+      
       isGameRunning = true;
       gameLoop();
+    }
+
+    function spawnTutorialTarget(isBomb) {
+      targets = [{
+        x: canvas.width / 2,
+        y: canvas.height / 2,
+        vx: 0, vy: 0,
+        radius: isBomb ? 22 : 28,
+        isBomb: isBomb,
+        color: isBomb ? '#ff0055' : '#00f0ff'
+      }];
+    }
+
+    function advanceTutorialStep(nextStep, text) {
+      tutorialStep = nextStep;
+      document.getElementById('tutorialText').innerText = text;
     }
 
     function spawnTarget() {
@@ -191,20 +259,38 @@
       targets.forEach((t, index) => {
         const dist = Math.hypot(t.x - hx, t.y - hy);
         if (dist < t.radius) {
-          if (t.isBomb) {
-            lives--;
-            updateLivesDisplay();
-            createSplatter(t.x, t.y, '#ff0055');
-            targets.splice(index, 1);
-            if (lives <= 0) gameOver();
+          createSplatter(t.x, t.y, t.color);
+          targets.splice(index, 1);
+
+          if (isTutorialMode) {
+            handleTutorialSlices(t);
           } else {
-            score += 10;
-            document.getElementById('scoreVal').innerText = score;
-            createSplatter(t.x, t.y, '#00f0ff');
-            targets.splice(index, 1);
+            if (t.isBomb) {
+              lives--;
+              updateLivesDisplay();
+              if (lives <= 0) gameOver();
+            } else {
+              score += 10;
+              document.getElementById('scoreVal').innerText = score;
+            }
           }
         }
       });
+    }
+
+    function handleTutorialSlices(target) {
+      if (tutorialStep === 2 && !target.isBomb) {
+        advanceTutorialStep(3, "STEP 3: DO NOT slice RED Plasma Bombs! Slice to continue.");
+        setTimeout(() => spawnTutorialTarget(true), 600);
+      } else if (tutorialStep === 3 && target.isBomb) {
+        advanceTutorialStep(4, "GREAT JOB! Tutorial Complete. Loading Main Game...");
+        setTimeout(() => {
+          isTutorialMode = false;
+          document.getElementById('tutorialBanner').classList.add('hidden');
+          score = 0; lives = 3;
+          updateLivesDisplay();
+        }, 2000);
+      }
     }
 
     function updateLivesDisplay() {
@@ -214,22 +300,22 @@
     }
 
     function update() {
-      // Clear older blade trail points
       const now = Date.now();
       bladeTrail = bladeTrail.filter(pt => now - pt.time < 150);
 
-      // Spawn Targets
-      if (Math.random() < 0.03) spawnTarget();
+      // Normal Mode Spawning Logic
+      if (!isTutorialMode && Math.random() < 0.03) {
+        spawnTarget();
+      }
 
-      // Targets Physics
+      // Physics
       targets.forEach((t, idx) => {
         t.x += t.vx;
         t.y += t.vy;
-        t.vy += 0.25; // Gravity
+        if (!isTutorialMode) t.vy += 0.25;
 
-        // Missed target penalty
         if (t.y > canvas.height + 50 && t.vy > 0) {
-          if (!t.isBomb) {
+          if (!t.isBomb && !isTutorialMode) {
             lives--;
             updateLivesDisplay();
             if (lives <= 0) gameOver();
@@ -238,7 +324,6 @@
         }
       });
 
-      // Particles Physics
       particles.forEach((p, idx) => {
         p.x += p.vx;
         p.y += p.vy;
@@ -251,7 +336,6 @@
       ctx.fillStyle = "#020617";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Render Targets
       targets.forEach(t => {
         ctx.beginPath();
         ctx.arc(t.x, t.y, t.radius, 0, Math.PI * 2);
@@ -262,7 +346,6 @@
         ctx.shadowBlur = 0;
       });
 
-      // Render Splatter Particles
       particles.forEach(p => {
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
@@ -272,7 +355,6 @@
         ctx.globalAlpha = 1.0;
       });
 
-      // Render Cyber Blade Trail
       if (bladeTrail.length > 1) {
         ctx.beginPath();
         ctx.moveTo(bladeTrail[0].x, bladeTrail[0].y);
@@ -309,10 +391,8 @@
       ctx.fillStyle = "#00f0ff";
       ctx.fillText(`FINAL SCORE: ${score}`, canvas.width / 2, canvas.height / 2 + 20);
 
-      document.getElementById('startBtn').innerText = "RESTART CYBER BLADE";
-      document.getElementById('startBtn').style.display = 'block';
-
-      // Reset
+      document.getElementById('menuButtons').style.display = 'flex';
+      document.getElementById('tutorialBanner').classList.add('hidden');
       targets = []; particles = []; bladeTrail = []; score = 0; lives = 3;
       document.getElementById('scoreVal').innerText = "0";
       updateLivesDisplay();
