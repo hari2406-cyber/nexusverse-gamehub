@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cyber-Hand Space Shooter - NexusVerse</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&display=swap');
+
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+    body {
+      background: #020617;
+      color: #22c55e;
+      font-family: 'Orbitron', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    #gameWrapper {
+      position: relative;
+      width: 900px;
+      height: 500px;
+      border: 3px solid #22c55e;
+      border-radius: 12px;
+      box-shadow: 0 0 30px rgba(34, 197, 94, 0.4);
+      overflow: hidden;
+      background: #000;
+    }
+
+    canvas { display: block; width: 100%; height: 100%; }
+
+    #webcamBox {
+      position: absolute;
+      top: 15px; right: 15px;
+      width: 140px; height: 105px;
+      border: 2px solid #22c55e;
+      border-radius: 8px;
+      overflow: hidden;
+      z-index: 10;
+      background: #000;
+    }
+
+    #webcam { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+
+    #hud {
+      position: absolute;
+      top: 15px; left: 20px;
+      z-index: 10;
+      display: flex; gap: 30px;
+      font-size: 1.1rem;
+      text-shadow: 0 0 10px #22c55e;
+    }
+
+    #tutorialBanner {
+      position: absolute;
+      bottom: 20px; left: 50%;
+      transform: translateX(-50%);
+      background: rgba(2, 6, 23, 0.9);
+      border: 2px solid #22c55e;
+      padding: 12px 25px;
+      border-radius: 20px;
+      font-size: 0.95rem;
+      color: #fff;
+      text-align: center;
+      z-index: 15;
+      box-shadow: 0 0 15px rgba(34, 197, 94, 0.4);
+    }
+
+    .btn-container {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      display: flex; flex-direction: column; gap: 15px;
+      z-index: 20;
+    }
+
+    .btn-main {
+      padding: 15px 35px;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.1rem;
+      color: #020617;
+      background: #22c55e;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 0 20px #22c55e;
+      font-weight: 900;
+      transition: transform 0.2s;
+    }
+
+    .btn-main:hover { transform: scale(1.05); }
+
+    .btn-secondary {
+      background: transparent;
+      color: #22c55e;
+      border: 2px solid #22c55e;
+      box-shadow: none;
+    }
+
+    .hidden { display: none !important; }
+  </style>
+
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+</head>
+<body>
+
+  <div id="gameWrapper">
+    <div id="webcamBox">
+      <video id="webcam" autoplay playsinline></video>
+    </div>
+
+    <div id="hud">
+      <div>SCORE: <span id="scoreVal" style="color: #fff;">0</span></div>
+      <div>ENERGY: <span id="energyVal" style="color: #22c55e;">100%</span></div>
+    </div>
+
+    <!-- Tutorial Banner -->
+    <div id="tutorialBanner" class="hidden">
+      <span id="tutorialText">STEP 1: Move your index finger left/right to steer ship!</span>
+    </div>
+
+    <!-- Menu Buttons -->
+    <div id="menuButtons" class="btn-container">
+      <button class="btn-main" onclick="startMode('GAME')">START SPACE SHOOTER</button>
+      <button class="btn-main btn-secondary" onclick="startMode('TUTORIAL')">PLAYABLE TUTORIAL</button>
+    </div>
+
+    <canvas id="gameCanvas" width="900" height="500"></canvas>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const videoElement = document.getElementById('webcam');
+
+    let camera, hands;
+    let score = 0;
+    let isGameRunning = false;
+    let isTutorialMode = false;
+    let tutorialStep = 1;
+
+    let shipX = canvas.width / 2;
+    let bullets = [];
+    let enemies = [];
+    let particles = [];
+    let lastShotTime = 0;
+
+    function initHandTracking() {
+      hands = new Hands({
+        locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+      });
+
+      hands.setOptions({
+        maxNumHands: 1,
+        modelComplexity: 1,
+        minDetectionConfidence: 0.6,
+        minTrackingConfidence: 0.6
+      });
+
+      hands.onResults(onHandResults);
+
+      camera = new Camera(videoElement, {
+        onFrame: async () => { await hands.send({ image: videoElement }); },
+        width: 320, height: 240
+      });
+    }
+
+    function onHandResults(results) {
+      if (!results.multiHandLandmarks || results.multiHandLandmarks.length === 0) return;
+
+      const landmarks = results.multiHandLandmarks[0];
+      const indexTip = landmarks[8];
+      const thumbTip = landmarks[4];
+
+      // Mirror mapping for ship X coordinate
+      shipX = (1 - indexTip.x) * canvas.width;
+
+      // Pinch detection for shooting
+      const pinchDist = Math.hypot(indexTip.x - thumbTip.x, indexTip.y - thumbTip.y);
+      const isPinching = pinchDist < 0.08;
+
+      const now = Date.now();
+      if (isPinching && now - lastShotTime > 200) {
+        bullets.push({ x: shipX, y: canvas.height - 50, vy: -12 });
+        lastShotTime = now;
+
+        if (isTutorialMode && tutorialStep === 2) {
+          advanceTutorialStep(3, "STEP 3: Destroy target invaders to defend earth!");
+          spawnTutorialEnemy();
+        }
+      }
+
+      if (isTutorialMode && tutorialStep === 1) {
+        advanceTutorialStep(2, "STEP 2: Pinch your index finger and thumb to shoot!");
+      }
+    }
+
+    function startMode(mode) {
+      document.getElementById('menuButtons').style.display = 'none';
+      isTutorialMode = (mode === 'TUTORIAL');
+
+      if (isTutorialMode) {
+        tutorialStep = 1;
+        document.getElementById('tutorialBanner').classList.remove('hidden');
+        document.getElementById('tutorialText').innerText = "STEP 1: Move your index finger left & right to steer ship!";
+      } else {
+        document.getElementById('tutorialBanner').classList.add('hidden');
+      }
+
+      if (!camera) {
+        initHandTracking();
+        camera.start();
+      }
+
+      isGameRunning = true;
+      gameLoop();
+    }
+
+    function advanceTutorialStep(step, text) {
+      tutorialStep = step;
+      document.getElementById('tutorialText').innerText = text;
+    }
+
+    function spawnTutorialEnemy() {
+      enemies = [{
+        x: canvas.width / 2, y: 100,
+        radius: 20, vy: 0, hp: 10
+      }];
+    }
+
+    function spawnEnemy() {
+      enemies.push({
+        x: Math.random() * (canvas.width - 80) + 40,
+        y: -20,
+        radius: 18,
+        vy: 1.5 + Math.random() * 2,
+        hp: 10
+      });
+    }
+
+    function createExplosion(x, y, color) {
+      for (let i = 0; i < 10; i++) {
+        particles.push({
+          x, y,
+          vx: (Math.random() - 0.5) * 6,
+          vy: (Math.random() - 0.5) * 6,
+          radius: Math.random() * 3 + 1,
+          color, life: 1.0
+        });
+      }
+    }
+
+    function update() {
+      // Bullets
+      bullets.forEach(b => b.y += b.vy);
+      bullets = bullets.filter(b => b.y > -10);
+
+      // Normal Spawn
+      if (!isTutorialMode && Math.random() < 0.03) spawnEnemy();
+
+      // Enemies
+      enemies.forEach((e, eIdx) => {
+        e.y += e.vy;
+
+        // Bullet Collision
+        bullets.forEach((b, bIdx) => {
+          if (Math.hypot(b.x - e.x, b.y - e.y) < e.radius) {
+            e.hp -= 10;
+            bullets.splice(bIdx, 1);
+            createExplosion(e.x, e.y, '#22c55e');
+
+            if (e.hp <= 0) {
+              enemies.splice(eIdx, 1);
+              score += 25;
+              document.getElementById('scoreVal').innerText = score;
+
+              if (isTutorialMode && tutorialStep === 3) {
+                advanceTutorialStep(4, "SUCCESS! Interactive Tutorial Finished. Launching Game...");
+                setTimeout(() => {
+                  isTutorialMode = false;
+                  document.getElementById('tutorialBanner').classList.add('hidden');
+                  score = 0;
+                  document.getElementById('scoreVal').innerText = "0";
+                }, 2000);
+              }
+            }
+          }
+        });
+
+        if (e.y > canvas.height + 30 && !isTutorialMode) gameOver();
+      });
+
+      // Particles
+      particles.forEach((p, pIdx) => {
+        p.x += p.vx; p.y += p.vy;
+        p.life -= 0.04;
+        if (p.life <= 0) particles.splice(pIdx, 1);
+      });
+    }
+
+    function render() {
+      ctx.fillStyle = "#020617";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Ship
+      ctx.fillStyle = "#22c55e";
+      ctx.beginPath();
+      ctx.moveTo(shipX, canvas.height - 50);
+      ctx.lineTo(shipX - 20, canvas.height - 20);
+      ctx.lineTo(shipX + 20, canvas.height - 20);
+      ctx.closePath();
+      ctx.shadowColor = "#22c55e"; ctx.shadowBlur = 15;
+      ctx.fill(); ctx.shadowBlur = 0;
+
+      // Bullets
+      bullets.forEach(b => {
+        ctx.fillStyle = "#38bdf8";
+        ctx.fillRect(b.x - 3, b.y, 6, 12);
+      });
+
+      // Enemies
+      enemies.forEach(e => {
+        ctx.fillStyle = "#ef4444";
+        ctx.beginPath();
+        ctx.arc(e.x, e.y, e.radius, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // Particles
+      particles.forEach(p => {
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = Math.max(0, p.life);
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1.0;
+      });
+    }
+
+    function gameLoop() {
+      if (!isGameRunning) return;
+      update();
+      render();
+      requestAnimationFrame(gameLoop);
+    }
+
+    function gameOver() {
+      isGameRunning = false;
+      ctx.fillStyle = "rgba(2, 6, 23, 0.9)";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.font = "30px 'Orbitron'";
+      ctx.fillStyle = "#ef4444";
+      ctx.textAlign = "center";
+      ctx.fillText("EARTH OVERRUN: GAME OVER", canvas.width / 2, canvas.height / 2 - 20);
+
+      ctx.font = "16px 'Orbitron'";
+      ctx.fillStyle = "#22c55e";
+      ctx.fillText(`FINAL SCORE: ${score}`, canvas.width / 2, canvas.height / 2 + 20);
+
+      document.getElementById('menuButtons').style.display = 'flex';
+      bullets = []; enemies = []; particles = []; score = 0;
+      document.getElementById('scoreVal').innerText = "0";
+    }
+  </script>
+</body>
+</html>
