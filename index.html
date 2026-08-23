@@ -59,7 +59,7 @@
       <div id="iframeWrapper" class="iframe-wrapper">
         <iframe 
           id="gameFrame" 
-          src="https://nebezb.com/floppybird/" 
+          src="cyber-blade.html" 
           sandbox="allow-scripts allow-same-origin allow-forms"
           loading="lazy"
           allowfullscreen>
@@ -67,7 +67,7 @@
       </div>
 
       <div class="game-bar">
-        <h2 id="currentGameTitle">Flappy Bird</h2>
+        <h2 id="currentGameTitle">Cyber Blade</h2>
         <!-- Extended Module 2 Game Controls -->
         <div class="controls">
           <button onclick="toggleTheater()">🎭 Theater Mode</button>
@@ -81,16 +81,100 @@
     <section class="catalog-section">
       <h3>🔥 Popular Games</h3>
       <div class="game-grid">
+        
+        <!-- Classic Arcade -->
         <div class="game-card" onclick="playGame('Flappy Bird', 'https://nebezb.com/floppybird/')">
           <h4>Flappy Bird</h4>
         </div>
         <div class="game-card" onclick="playGame('Pixel Battle', 'pixel-battle.html')">
-       <h4>Pixel Battle</h4>
+          <h4>Pixel Battle</h4>
+        </div>
+
+        <!-- Motion Controller Games -->
+        <div class="game-card" onclick="playGame('Cyber Blade', 'cyber-blade.html')">
+          <div class="card-tag">MOTION SENSOR</div>
+          <h4>Cyber Blade</h4>
+        </div>
+        
+        <div class="game-card" onclick="playGame('Spellcaster Arena', 'spellcaster.html')">
+          <div class="card-tag">GESTURE MAGIC</div>
+          <h4>Spellcaster Arena</h4>
+        </div>
+
+        <div class="game-card" onclick="playGame('Cyber Space Shooter', 'space-shooter.html')">
+          <div class="card-tag">HAND TRACKING</div>
+          <h4>Cyber Space Shooter</h4>
+        </div>
+
       </div>
+
+      <!-- Hub Description Panel -->
+      <div class="game-description-box">
+        <h3>NexusVerse Motion-Control Arcade Hub</h3>
+        <p>
+          Welcome to the next level of browser gaming! Powered by real-time computer vision using <b>Google MediaPipe Hand Tracking</b>, this hub converts your computer camera into a zero-touch gesture controller. Navigate through interactive tutorials, master hand mechanics, and achieve high scores across all motion-controlled games without touching a keyboard or mouse.
+        </p>
+        
+        <div class="feature-pills">
+          <span class="pill">📷 Live Webcam AI</span>
+          <span class="pill">⚡ Real-Time Gesture Engine</span>
+          <span class="pill">🎓 Guided Interactive Tutorials</span>
+          <span class="pill">🕹️ Zero Hardware Required</span>
+        </div>
       </div>
     </section>
 
   </main>
+
+  <!-- Embedded Styles for Hub Section -->
+  <style>
+    .card-tag {
+      font-size: 0.65rem;
+      font-weight: bold;
+      color: #ff007f;
+      letter-spacing: 1px;
+      margin-bottom: 5px;
+    }
+
+    .game-description-box {
+      margin-top: 40px;
+      padding: 25px;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid #38bdf8;
+      border-radius: 12px;
+      box-shadow: 0 0 20px rgba(56, 189, 248, 0.15);
+      color: #e2e8f0;
+    }
+
+    .game-description-box h3 {
+      font-size: 1.3rem;
+      color: #38bdf8;
+      margin-bottom: 10px;
+    }
+
+    .game-description-box p {
+      font-size: 0.9rem;
+      line-height: 1.6;
+      margin-bottom: 15px;
+      color: #94a3b8;
+    }
+
+    .feature-pills {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .pill {
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid #38bdf8;
+      color: #38bdf8;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: bold;
+    }
+  </style>
 
   <!-- Link app.js file with type="module" -->
   <script type="module" src="app.js"></script>
