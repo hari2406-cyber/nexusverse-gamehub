@@ -3,625 +3,317 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#050000">
-  <meta name="description" content="NexusVerse — The Forbidden Motion-Control Arcade">
+  <meta name="theme-color" content="#050303">
+  <meta name="description" content="NexusVerse — The Forbidden Arcade">
   <title>NexusVerse | The Forbidden Arcade</title>
-
-  <!-- Gothic + modern fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
   <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
+  <div class="page-glow"></div>
 
-  <!-- =========================================================
-       CINEMATIC DUNGEON INTRO
-       ========================================================= -->
-  <section class="dungeon-intro" id="dungeonIntro">
+  <!-- CINEMATIC OPENING -->
+  <section class="dungeon-intro" id="intro">
+    <div class="blood-moon"></div>
+    <div class="castle"></div>
+    <div class="ground-fog fog-one"></div>
+    <div class="ground-fog fog-two"></div>
 
-    <div class="intro-sky"></div>
-
-    <div class="blood-moon">
-      <div class="moon-glow"></div>
+    <div class="embers" aria-hidden="true">
+      <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+      <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
     </div>
 
-    <div class="hell-clouds"></div>
-
-    <!-- Distant fortress -->
-    <div class="dungeon-castle">
-      <div class="castle-tower tower-left"></div>
-      <div class="castle-tower tower-center"></div>
-      <div class="castle-tower tower-right"></div>
-      <div class="castle-wall"></div>
-      <div class="castle-gate"></div>
-    </div>
-
-    <!-- Main demon / boss silhouette -->
-    <div class="boss-stage">
-
+    <!-- Demon silhouette — no weapon/slash animation -->
+    <div class="boss-scene" aria-hidden="true">
       <div class="boss-aura"></div>
-
       <div class="demon-boss">
-
-        <div class="demon-horns">
-          <span class="horn horn-left"></span>
-          <span class="horn horn-right"></span>
-        </div>
-
+        <div class="horn horn-left"></div>
+        <div class="horn horn-right"></div>
         <div class="demon-head">
-          <div class="demon-eye eye-left"></div>
-          <div class="demon-eye eye-right"></div>
+          <span class="eye eye-left"></span>
+          <span class="eye eye-right"></span>
         </div>
-
         <div class="demon-neck"></div>
-
-        <div class="demon-body">
-          <div class="demon-armor"></div>
-          <div class="demon-chest"></div>
-        </div>
-
-        <div class="demon-arm arm-left">
-          <div class="demon-hand"></div>
-        </div>
-
-        <div class="demon-arm arm-right">
-          <div class="demon-hand"></div>
-        </div>
-
-        <div class="demon-cape"></div>
-
-        <!-- Weapon -->
-        <div class="boss-weapon">
-          <div class="weapon-handle"></div>
-          <div class="weapon-blade"></div>
-        </div>
-
+        <div class="demon-cloak"></div>
+        <div class="demon-arm arm-left"></div>
+        <div class="demon-arm arm-right"></div>
+        <div class="demon-hand hand-left"></div>
+        <div class="demon-hand hand-right"></div>
       </div>
-
-      <!-- Dramatic slash -->
-      <div class="weapon-slash">
-        <span></span>
-      </div>
-
     </div>
 
-    <!-- Ground -->
-    <div class="hell-ground"></div>
-    <div class="lava-line"></div>
-
-    <!-- Ember particles -->
-    <div class="embers">
-      <i></i><i></i><i></i><i></i><i></i>
-      <i></i><i></i><i></i><i></i><i></i>
-      <i></i><i></i><i></i><i></i><i></i>
-      <i></i><i></i><i></i><i></i><i></i>
-    </div>
-
-    <!-- Intro text -->
     <div class="intro-content">
+      <div class="intro-eyebrow">THE GATES HAVE OPENED</div>
+      <div class="intro-symbol">✦</div>
+      <h1>NEXUSVERSE</h1>
+      <h2>THE FORBIDDEN ARCADE</h2>
+      <p>ENTER THE DUNGEON. CHOOSE YOUR GAME. CONQUER THE REALM.</p>
 
-      <p class="intro-overline">
-        THE GATES HAVE OPENED
-      </p>
-
-      <h1 class="intro-title">
-        NEXUS<span>VERSE</span>
-      </h1>
-
-      <div class="intro-divider">
-        <span></span>
-        <b>✦</b>
-        <span></span>
-      </div>
-
-      <p class="intro-subtitle">
-        THE FORBIDDEN ARCADE
-      </p>
-
-      <p class="intro-description">
-        ENTER THE DUNGEON. CHOOSE YOUR GAME.
-        CONQUER THE REALM.
-      </p>
-
-      <button
-        class="enter-dungeon-btn"
-        onclick="enterDungeon()">
+      <!-- Real anchor link: works even if JavaScript fails -->
+      <a href="#hub" class="enter-hub-btn" id="enterHubBtn">
         <span>ENTER THE GAME HUB</span>
-        <b>→</b>
-      </button>
+        <span class="button-arrow">→</span>
+      </a>
 
-      <div class="scroll-cue">
-        <span>DESCEND</span>
-        <div class="scroll-line"></div>
-      </div>
-
+      <a href="#hub" class="descend-link">☠ DESCEND</a>
     </div>
-
   </section>
 
-
-  <!-- =========================================================
-       NAVIGATION
-       ========================================================= -->
+  <!-- NAVIGATION -->
   <header class="navbar">
-
-    <a href="#" class="logo" onclick="scrollToHub(event)">
-      <span class="logo-symbol">☠</span>
-      <span class="logo-text">
-        NEXUS<span>VERSE</span>
-      </span>
+    <a href="#intro" class="brand">
+      <span class="brand-mark">☠</span>
+      <span>NEXUSVERSE</span>
     </a>
 
     <div class="nav-actions">
-
-      <button
-        class="notif-btn"
-        id="notifBtn"
-        aria-label="Notifications">
-        🔔
-        <span id="notifCount">1</span>
+      <button class="nav-icon" id="notifBtn" type="button" aria-label="Notifications">
+        🔔 <span id="notifCount">1</span>
       </button>
-
-      <a href="admin.html" class="admin-link">
-        ⚔ Admin
-      </a>
-
-      <!-- Authentication -->
-      <div id="authSection">
-
-        <button
-          id="loginBtn"
-          onclick="openAuthModal()"
-          class="auth-btn">
-          LOGIN
-        </button>
-
-        <a
-          href="signup.html"
-          class="auth-btn signup-link-btn">
-          SIGN UP
-        </a>
-
-        <div id="userProfile" class="user-profile" style="display: none;">
-          <span class="user-icon">👤</span>
-          <span id="userName">User</span>
-          <button
-            onclick="logout()"
-            class="logout-btn">
-            LOGOUT
-          </button>
-        </div>
-
+      <a href="admin.html" class="admin-link">⚔ Admin</a>
+      <div id="authSection" class="auth-section">
+        <button class="login-btn" id="loginBtn" type="button" onclick="openAuthModal()">LOGIN</button>
+        <a href="signup.html" class="signup-btn">SIGN UP</a>
       </div>
-
+      <div id="userProfile" class="user-profile" style="display:none;">
+        <span id="userName"></span>
+        <button type="button" onclick="logout()">LOGOUT</button>
+      </div>
     </div>
   </header>
 
+  <main id="hub" class="main-container">
+    <!-- HUB HERO -->
+    <section class="hub-hero">
+      <div class="section-kicker">✦ NEXUSVERSE // ARENA</div>
+      <h2>THE NEXUS AWAITS</h2>
+      <p>CHOOSE YOUR BATTLE</p>
+      <div class="hero-copy">
+        Motion-controlled games forged for those who dare to enter the realm.
+      </div>
 
-  <!-- =========================================================
-       LOGIN MODAL
-       ========================================================= -->
-  <div
-    id="authModal"
-    class="modal"
-    style="display: none;">
+      <div class="realm-status">
+        <span class="status-dot"></span>
+        REALM ONLINE
+      </div>
+    </section>
 
-    <div class="modal-backdrop"></div>
-
-    <div class="modal-content">
-
-      <button
-        class="close-btn"
-        onclick="closeAuthModal()"
-        aria-label="Close">
-        &times;
-      </button>
-
-      <div class="modal-icon">☠</div>
-
-      <p class="modal-overline">
-        ENTER THE REALM
-      </p>
-
-      <h3>
-        WELCOME TO
-        <span>NEXUSVERSE</span>
-      </h3>
-
-      <p class="modal-subtitle">
-        Sign in to continue your journey.
-      </p>
-
-      <div class="form-group">
-
-        <label for="authEmail">
-          EMAIL
-        </label>
-
-        <input
-          type="email"
-          id="authEmail"
-          placeholder="Enter your email"
-          autocomplete="email">
-
-        <label for="authPassword">
-          PASSWORD
-        </label>
-
-        <input
-          type="password"
-          id="authPassword"
-          placeholder="Enter your password"
-          autocomplete="current-password">
-
-        <div class="forgot-row">
-          <a href="forgot-password.html">
-            Forgot Password?
-          </a>
+    <!-- GAME PLAYER -->
+    <section class="player-section" id="gamePlayer">
+      <div class="player-heading">
+        <div>
+          <span class="small-label">CURRENT BATTLE</span>
+          <h3 id="currentGameTitle">Cyber Blade</h3>
         </div>
 
+        <div class="player-tools">
+          <button type="button" onclick="toggleTheater()">🎭 THEATER</button>
+          <button type="button" onclick="reloadGame()">↻ REFRESH</button>
+          <button type="button" onclick="toggleFullscreen()">⛶ FULLSCREEN</button>
+        </div>
       </div>
 
-      <button
-        onclick="loginEmail()"
-        class="btn-primary">
-        ENTER THE DUNGEON
-      </button>
+      <div class="game-frame-wrap" id="gameFrameWrap">
+        <iframe
+          id="gameFrame"
+          src="cyber-blade.html"
+          title="Cyber Blade"
+          allow="fullscreen; camera; microphone; autoplay; gamepad"
+          allowfullscreen
+          sandbox="allow-scripts allow-same-origin allow-forms">
+        </iframe>
 
-      <div class="or-divider">
-        <span>OR</span>
+        <div class="frame-corner corner-tl"></div>
+        <div class="frame-corner corner-tr"></div>
+        <div class="frame-corner corner-bl"></div>
+        <div class="frame-corner corner-br"></div>
+      </div>
+    </section>
+
+    <!-- GAME CATALOG -->
+    <section class="catalog-section">
+      <div class="catalog-heading">
+        <div>
+          <span class="small-label">SELECT YOUR DESTINY</span>
+          <h2>BATTLE REALMS</h2>
+        </div>
+        <span class="game-count">05 GAMES</span>
       </div>
 
-      <button
-        onclick="loginGoogle()"
-        class="btn-google">
-        <span>G</span>
-        CONTINUE WITH GOOGLE
-      </button>
+      <div class="game-grid">
+        <article class="game-card" onclick="playGame('Flappy Bird','https://nebezb.com/floppybird/')">
+          <div class="card-number">01</div>
+          <div class="card-icon">🦇</div>
+          <span class="card-tag">CLASSIC ARCADE</span>
+          <h3>FLAPPY BIRD</h3>
+          <p>Survive the endless descent.</p>
+          <button type="button">PLAY <span>→</span></button>
+        </article>
 
-      <p class="register-text">
-        Don't have an account?
-        <a href="signup.html">
-          Register here
-        </a>
-      </p>
+        <article class="game-card" onclick="playGame('Pixel Battle','pixel-battle.html')">
+          <div class="card-number">02</div>
+          <div class="card-icon">⚔</div>
+          <span class="card-tag">ARCADE COMBAT</span>
+          <h3>PIXEL BATTLE</h3>
+          <p>Enter the pixel war.</p>
+          <button type="button">PLAY <span>→</span></button>
+        </article>
 
+        <article class="game-card featured-card" onclick="playGame('Cyber Blade','cyber-blade.html')">
+          <div class="card-number">03</div>
+          <div class="card-icon">⚔️</div>
+          <span class="card-tag">MOTION SENSOR</span>
+          <h3>CYBER BLADE</h3>
+          <p>Wield your blade with movement.</p>
+          <button type="button">PLAY <span>→</span></button>
+        </article>
+
+        <article class="game-card" onclick="playGame('Spellcaster Arena','spellcaster.html')">
+          <div class="card-number">04</div>
+          <div class="card-icon">🔥</div>
+          <span class="card-tag">GESTURE MAGIC</span>
+          <h3>SPELLCASTER ARENA</h3>
+          <p>Cast spells with your hands.</p>
+          <button type="button">PLAY <span>→</span></button>
+        </article>
+
+        <article class="game-card" onclick="playGame('Cyber Space Shooter','space-shooter.html')">
+          <div class="card-number">05</div>
+          <div class="card-icon">☄</div>
+          <span class="card-tag">SPACE COMBAT</span>
+          <h3>CYBER SPACE SHOOTER</h3>
+          <p>Survive the digital void.</p>
+          <button type="button">PLAY <span>→</span></button>
+        </article>
+      </div>
+    </section>
+
+    <!-- DESCRIPTION -->
+    <section class="description-section">
+      <div class="description-box">
+        <div>
+          <span class="small-label">NEXUS CODEX</span>
+          <h2>FORGED FOR THE FEARLESS</h2>
+          <p>
+            Enter a collection of arcade realms built around speed, movement,
+            reflexes and imagination. Pick a battle and make the Nexus yours.
+          </p>
+        </div>
+
+        <div class="feature-pills">
+          <span class="pill">⚡ FAST ACTION</span>
+          <span class="pill">🎮 PLAY IN BROWSER</span>
+          <span class="pill">📱 MOBILE FRIENDLY</span>
+          <span class="pill">🔥 MULTIPLE REALMS</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- AUTH MODAL -->
+  <div class="modal" id="authModal" style="display:none;">
+    <div class="modal-backdrop" onclick="closeAuthModal()"></div>
+
+    <div class="modal-box">
+      <button class="modal-close" type="button" onclick="closeAuthModal()">×</button>
+      <div class="modal-symbol">✦</div>
+      <h2>ENTER THE NEXUS</h2>
+      <p>Sign in to access your realm.</p>
+
+      <input id="authEmail" type="email" placeholder="Email" autocomplete="email">
+      <input id="authPassword" type="password" placeholder="Password" autocomplete="current-password">
+
+      <button class="modal-main-btn" type="button" onclick="loginEmail()">ENTER</button>
+      <button class="google-btn" type="button" onclick="loginGoogle()">CONTINUE WITH GOOGLE</button>
+
+      <div class="modal-links">
+        <a href="signup.html">CREATE ACCOUNT</a>
+        <a href="#" onclick="forgotPassword(); return false;">FORGOT PASSWORD?</a>
+      </div>
     </div>
   </div>
 
-
-  <!-- =========================================================
-       MAIN HUB
-       ========================================================= -->
-  <main class="main-container" id="gameHub">
-
-
-    <!-- =======================================================
-         HERO / HUB HEADER
-         ======================================================= -->
-    <section class="hub-hero">
-
-      <div class="hero-rune rune-one">✦</div>
-      <div class="hero-rune rune-two">◇</div>
-
-      <p class="section-kicker">
-        THE NEXUS AWAITS
-      </p>
-
-      <h2>
-        CHOOSE YOUR
-        <span>BATTLE</span>
-      </h2>
-
-      <p>
-        Motion-controlled games forged for those
-        who dare to enter the realm.
-      </p>
-
-    </section>
-
-
-    <!-- =======================================================
-         GAME PLAYER
-         ======================================================= -->
-    <section class="player-section">
-
-      <div class="player-frame">
-
-        <div class="player-corners">
-          <span></span>
-          <span></span>
-          <span></span>
-          <span></span>
-        </div>
-
-        <div class="player-topbar">
-
-          <div class="player-status">
-            <span class="status-dot"></span>
-            REALM ONLINE
-          </div>
-
-          <div class="player-title-small">
-            NEXUSVERSE // ARENA
-          </div>
-
-        </div>
-
-        <div
-          id="iframeWrapper"
-          class="iframe-wrapper">
-
-          <iframe
-            id="gameFrame"
-            src="cyber-blade.html"
-            title="NexusVerse Game Player"
-            sandbox="allow-scripts allow-same-origin allow-forms"
-            loading="lazy"
-            allowfullscreen>
-          </iframe>
-
-        </div>
-
-      </div>
-
-
-      <!-- Game controls -->
-      <div class="game-bar">
-
-        <div class="current-game">
-
-          <span class="current-label">
-            CURRENT BATTLE
-          </span>
-
-          <h2 id="currentGameTitle">
-            Cyber Blade
-          </h2>
-
-        </div>
-
-        <div class="controls">
-
-          <button
-            onclick="toggleTheater()"
-            title="Theater Mode">
-            <span>🎭</span>
-            <b>THEATER</b>
-          </button>
-
-          <button
-            onclick="reloadGame()"
-            title="Refresh Game">
-            <span>↻</span>
-            <b>REFRESH</b>
-          </button>
-
-          <button
-            onclick="toggleFullscreen()"
-            title="Fullscreen">
-            <span>⛶</span>
-            <b>FULLSCREEN</b>
-          </button>
-
-        </div>
-
-      </div>
-
-    </section>
-
-
-    <!-- =======================================================
-         GAME CATALOG
-         ======================================================= -->
-    <section class="catalog-section">
-
-      <div class="catalog-heading">
-
-        <div>
-          <p class="section-kicker">
-            SELECT YOUR DESTINY
-          </p>
-
-          <h3>
-            BATTLE <span>REALMS</span>
-          </h3>
-        </div>
-
-        <div class="catalog-mark">
-          <span></span>
-          05 GAMES
-        </div>
-
-      </div>
-
-
-      <div class="game-grid">
-
-
-        <!-- Flappy Bird -->
-        <article
-          class="game-card game-card-flappy"
-          onclick="playGame(
-            'Flappy Bird',
-            'https://nebezb.com/floppybird/'
-          )">
-
-          <div class="game-card-glow"></div>
-
-          <div class="game-card-number">
-            01
-          </div>
-
-          <div class="game-card-icon">
-            🦇
-          </div>
-
-          <div class="game-card-content">
-
-            <span class="game-card-type">
-              CLASSIC ARCADE
-            </span>
-
-            <h4>
-              FLAPPY
-              <span>BIRD</span>
-            </h4>
-
-            <p>
-              Survive the endless descent.
-            </p>
-
-          </div>
-
-          <div class="play-indicator">
-            PLAY <span>→</span>
-          </div>
-
-        </article>
-
-
-        <!-- Pixel Battle -->
-        <article
-          class="game-card"
-          onclick="playGame(
-            'Pixel Battle',
-            'pixel-battle.html'
-          )">
-
-          <div class="game-card-glow"></div>
-
-          <div class="game-card-number">
-            02
-          </div>
-
-          <div class="game-card-icon">
-            ⚔
-          </div>
-
-          <div class="game-card-content">
-
-            <span class="game-card-type">
-              ARCADE COMBAT
-            </span>
-
-            <h4>
-              PIXEL
-              <span>BATTLE</span>
-            </h4>
-
-            <p>
-              Enter the pixel war.
-            </p>
-
-          </div>
-
-          <div class="play-indicator">
-            PLAY <span>→</span>
-          </div>
-
-        </article>
-
-
-        <!-- Cyber Blade -->
-        <article
-          class="game-card featured-card"
-          onclick="playGame(
-            'Cyber Blade',
-            'cyber-blade.html'
-          )">
-
-          <div class="featured-badge">
-            FEATURED
-          </div>
-
-          <div class="game-card-glow"></div>
-
-          <div class="game-card-number">
-            03
-          </div>
-
-          <div class="game-card-icon">
-            ⚔️
-          </div>
-
-          <div class="game-card-content">
-
-            <span class="game-card-type">
-              MOTION SENSOR
-            </span>
-
-            <h4>
-              CYBER
-              <span>BLADE</span>
-            </h4>
-
-            <p>
-              Wield your blade with movement.
-            </p>
-
-          </div>
-
-          <div class="play-indicator">
-            PLAY <span>→</span>
-          </div>
-
-        </article>
-
-
-        <!-- Spellcaster -->
-        <article
-          class="game-card"
-          onclick="playGame(
-            'Spellcaster Arena',
-            'spellcaster.html'
-          )">
-
-          <div class="game-card-glow"></div>
-
-          <div class="game-card-number">
-            04
-          </div>
-
-          <div class="game-card-icon">
-            🔥
-          </div>
-
-          <div class="game-card-content">
-
-            <span class="game-card-type">
-              GESTURE MAGIC
-            </span>
-
-            <h4>
-              SPELLCASTER
-              <span>ARENA</span>
-            </h4>
-
-            <p>
-              Cast spells with your hands.
-            </p>
-
-          </div>
-
-          <div class="play-indicator">
-            PLAY <span>→</span>
-          </div>
-
-        </article>
-
-
-        <!-- Space Shooter -->
-        <article
-          class="game-card"
-          onclick="playGame(
-            'Cyber Space Shooter',
-            'space-shooter.html'
-          )">
-
-          <div class="game-card-glow"></div>
-
-          <div class="
+  <footer class="footer">
+    <div>☠ NEXUSVERSE</div>
+    <span>THE FORBIDDEN ARCADE</span>
+  </footer>
+
+  <script>
+    // Reliable hub navigation. The anchor itself also works without JavaScript.
+    document.querySelectorAll('a[href="#hub"]').forEach(function(link) {
+      link.addEventListener('click', function(event) {
+        event.preventDefault();
+        var hub = document.getElementById('hub');
+        if (hub) {
+          hub.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
+
+    function playGame(title, url) {
+      var frame = document.getElementById('gameFrame');
+      var titleElement = document.getElementById('currentGameTitle');
+      var player = document.getElementById('gamePlayer');
+
+      if (!frame) return;
+
+      frame.src = url;
+      frame.title = title;
+
+      if (titleElement) {
+        titleElement.textContent = title;
+      }
+
+      if (player) {
+        player.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+
+    function reloadGame() {
+      var frame = document.getElementById('gameFrame');
+      if (!frame) return;
+
+      var currentSrc = frame.src;
+      frame.src = 'about:blank';
+
+      setTimeout(function() {
+        frame.src = currentSrc;
+      }, 80);
+    }
+
+    function toggleFullscreen() {
+      var frame = document.getElementById('gameFrame');
+      if (!frame) return;
+
+      if (document.fullscreenElement) {
+        document.exitFullscreen();
+        return;
+      }
+
+      if (frame.requestFullscreen) {
+        frame.requestFullscreen();
+      }
+    }
+
+    function toggleTheater() {
+      var wrap = document.getElementById('gameFrameWrap');
+      if (wrap) {
+        wrap.classList.toggle('theater-mode');
+      }
+    }
+
+    document.addEventListener('keydown', function(event) {
+      if (event.key === 'Escape') {
+        var wrap = document.getElementById('gameFrameWrap');
+        if (wrap) wrap.classList.remove('theater-mode');
+      }
+    });
+  </script>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
