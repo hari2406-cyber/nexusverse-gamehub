@@ -1,181 +1,1029 @@
+/* =========================================================
+   NEXUSVERSE — THE FORBIDDEN ARCADE
+   DARK DEMONIC DUNGEON THEME
+   ========================================================= */
+
+:root {
+  --black: #030303;
+  --deep-black: #070505;
+  --dark-red: #180303;
+  --blood: #8b0000;
+  --red: #d10b0b;
+  --bright-red: #ff2525;
+  --ember: #ff5a16;
+  --gold: #d9a441;
+  --white: #f5f0e8;
+  --muted: #9c9292;
+  --panel: rgba(17, 7, 7, 0.92);
+  --border: rgba(185, 20, 20, 0.45);
+
+  --font-gothic: "Cinzel", Georgia, serif;
+  --font-main: "Inter", Arial, sans-serif;
+}
+
+
+/* =========================================================
+   GLOBAL
+   ========================================================= */
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   margin: 0;
-  font-family: 'Segoe UI', Arial, sans-serif;
-  background-color: #0f172a;
-  color: #f8fafc;
+  background:
+    radial-gradient(
+      circle at 50% 0%,
+      rgba(100, 0, 0, 0.18),
+      transparent 38%
+    ),
+    #030303;
+  color: var(--white);
+  font-family: var(--font-main);
+  overflow-x: hidden;
 }
 
-.navbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 15px 30px;
-  background-color: #1e293b;
-  border-bottom: 2px solid #3b82f6;
-}
-
-.logo {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: #38bdf8;
-}
-
-.nav-actions {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
-
-.auth-btn, .notif-btn, .admin-link {
-  background: #334155;
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 6px;
-  cursor: pointer;
-  text-decoration: none;
-}
-
-.logout-btn {
-  background: #ef4444;
-  color: white;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 4px;
-  cursor: pointer;
-  margin-left: 8px;
-}
-
-.main-container {
-  max-width: 1000px;
-  margin: 20px auto;
-  padding: 0 15px;
-}
-
-/* Module 2: Player Section & iFrame */
-.player-section {
-  max-width: 1000px;
-  margin: 0 auto 20px auto;
-  background: #1e293b;
-  border-radius: 12px;
-  padding: 15px;
-  border: 1px solid #334155;
-}
-
-.iframe-wrapper {
-  position: relative;
-  width: 100%;
-  height: 520px;
-  background: #000;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-  transition: all 0.3s ease;
-}
-
-iframe {
-  width: 100%;
-  height: 100%;
-  border: none;
-}
-
-/* Module 2: Theater Mode Full Viewport */
-.iframe-wrapper.theater-mode {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  z-index: 99999;
-  border-radius: 0;
-}
-
-.game-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 15px;
-}
-
-.controls {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.controls button {
-  background: #2563eb;
-  color: white;
-  border: none;
-  padding: 8px 14px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: background 0.2s;
-}
-
-.controls button:hover {
-  background: #38bdf8;
-  color: #0f172a;
-}
-
-.game-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 15px;
-}
-
+button,
+a,
 .game-card {
-  background: #1e293b;
-  border-radius: 8px;
-  padding: 20px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  font-family: inherit;
+}
+
+a {
+  color: inherit;
+}
+
+::selection {
+  background: var(--red);
+  color: white;
+}
+
+
+/* =========================================================
+   CINEMATIC INTRO
+   ========================================================= */
+
+.dungeon-intro {
+  position: relative;
+  height: 100vh;
+  min-height: 680px;
+  overflow: hidden;
+  background:
+    linear-gradient(
+      to bottom,
+      #020202 0%,
+      #160202 48%,
+      #390707 72%,
+      #080101 100%
+    );
+  isolation: isolate;
+}
+
+
+/* red atmospheric glow */
+
+.dungeon-intro::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -20%;
+  width: 100%;
+  height: 65%;
+  transform: translateX(-50%);
+  background:
+    radial-gradient(
+      ellipse,
+      rgba(255, 40, 0, 0.32),
+      rgba(110, 0, 0, 0.15) 35%,
+      transparent 70%
+    );
+  pointer-events: none;
+  z-index: 2;
+}
+
+
+/* sky */
+
+.intro-sky {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(
+      ellipse at 50% 35%,
+      rgba(150, 0, 0, 0.35),
+      transparent 45%
+    );
+  z-index: -5;
+}
+
+
+/* =========================================================
+   BLOOD MOON
+   ========================================================= */
+
+.blood-moon {
+  position: absolute;
+  top: 9%;
+  left: 50%;
+  width: min(280px, 45vw);
+  height: min(280px, 45vw);
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background:
+    radial-gradient(
+      circle at 38% 35%,
+      #ff5555 0%,
+      #d11313 42%,
+      #6c0000 72%,
+      #250000 100%
+    );
+  box-shadow:
+    0 0 35px rgba(255, 20, 20, 0.65),
+    0 0 100px rgba(170, 0, 0, 0.4),
+    0 0 180px rgba(120, 0, 0, 0.2);
+  z-index: -4;
+  animation: moonPulse 5s ease-in-out infinite;
+}
+
+.moon-glow {
+  position: absolute;
+  inset: -25px;
+  border-radius: 50%;
+  background: rgba(255, 0, 0, 0.12);
+  filter: blur(20px);
+}
+
+@keyframes moonPulse {
+  0%,
+  100% {
+    transform: translateX(-50%) scale(1);
+  }
+
+  50% {
+    transform: translateX(-50%) scale(1.025);
+  }
+}
+
+
+/* =========================================================
+   CLOUDS
+   ========================================================= */
+
+.hell-clouds {
+  position: absolute;
+  left: -10%;
+  right: -10%;
+  bottom: 18%;
+  height: 28%;
+  background:
+    radial-gradient(
+      ellipse at 20% 50%,
+      rgba(5, 0, 0, 0.95),
+      transparent 55%
+    ),
+    radial-gradient(
+      ellipse at 70% 40%,
+      rgba(10, 0, 0, 0.95),
+      transparent 55%
+    );
+  filter: blur(15px);
+  opacity: 0.9;
+  z-index: 1;
+}
+
+
+/* =========================================================
+   CASTLE
+   ========================================================= */
+
+.dungeon-castle {
+  position: absolute;
+  left: 50%;
+  bottom: 20%;
+  width: 580px;
+  max-width: 90vw;
+  height: 260px;
+  transform: translateX(-50%);
+  z-index: 2;
+}
+
+.castle-wall {
+  position: absolute;
+  bottom: 0;
+  left: 10%;
+  width: 80%;
+  height: 50%;
+  background: #050505;
+  clip-path: polygon(
+    0 30%,
+    10% 30%,
+    10% 0,
+    18% 0,
+    18% 30%,
+    28% 30%,
+    28% 10%,
+    37% 10%,
+    37% 30%,
+    48% 30%,
+    48% 0,
+    58% 0,
+    58% 30%,
+    70% 30%,
+    70% 8%,
+    80% 8%,
+    80% 30%,
+    100% 30%,
+    100% 100%,
+    0 100%
+  );
+}
+
+.castle-tower {
+  position: absolute;
+  bottom: 0;
+  width: 85px;
+  height: 210px;
+  background: #040404;
+}
+
+.castle-tower::before {
+  content: "";
+  position: absolute;
+  left: -8px;
+  top: -35px;
+  width: calc(100% + 16px);
+  height: 55px;
+  background: #040404;
+  clip-path: polygon(
+    0 100%,
+    0 25%,
+    18% 25%,
+    18% 0,
+    34% 0,
+    34% 25%,
+    50% 25%,
+    50% 0,
+    66% 0,
+    66% 25%,
+    82% 25%,
+    82% 0,
+    100% 0,
+    100% 100%
+  );
+}
+
+.tower-left {
+  left: 8%;
+}
+
+.tower-center {
+  left: 43%;
+  height: 250px;
+}
+
+.tower-right {
+  right: 8%;
+}
+
+.castle-gate {
+  position: absolute;
+  bottom: 0;
+  left: 43%;
+  width: 14%;
+  height: 35%;
+  background: #160000;
+  border: 2px solid rgba(100, 0, 0, 0.6);
+  border-radius: 50% 50% 0 0;
+}
+
+
+/* =========================================================
+   DEMON BOSS
+   ========================================================= */
+
+.boss-stage {
+  position: absolute;
+  left: 50%;
+  bottom: 10%;
+  width: 400px;
+  height: 600px;
+  transform: translateX(-50%);
+  z-index: 6;
+  pointer-events: none;
+}
+
+.boss-aura {
+  position: absolute;
+  left: 50%;
+  bottom: 5%;
+  width: 360px;
+  height: 460px;
+  transform: translateX(-50%);
+  background:
+    radial-gradient(
+      ellipse,
+      rgba(130, 0, 0, 0.38),
+      transparent 65%
+    );
+  filter: blur(25px);
+}
+
+
+/* demon body */
+
+.demon-boss {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 220px;
+  height: 520px;
+  transform: translateX(-50%);
+  animation: demonFloat 4s ease-in-out infinite;
+}
+
+@keyframes demonFloat {
+  0%,
+  100% {
+    transform: translateX(-50%) translateY(0);
+  }
+
+  50% {
+    transform: translateX(-50%) translateY(-8px);
+  }
+}
+
+
+/* cape */
+
+.demon-cape {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 260px;
+  height: 360px;
+  transform: translateX(-50%);
+  background:
+    linear-gradient(
+      90deg,
+      transparent 0%,
+      #050505 13%,
+      #000 50%,
+      #050505 87%,
+      transparent 100%
+    );
+  clip-path: polygon(
+    30% 0,
+    70% 0,
+    100% 100%,
+    0 100%
+  );
+  filter: drop-shadow(0 0 15px rgba(100, 0, 0, 0.45));
+}
+
+
+/* head */
+
+.demon-head {
+  position: absolute;
+  left: 50%;
+  top: 90px;
+  width: 100px;
+  height: 120px;
+  transform: translateX(-50%);
+  background:
+    radial-gradient(
+      ellipse at 50% 30%,
+      #1c1717,
+      #050505 65%
+    );
+  border-radius: 45% 45% 50% 50%;
+  z-index: 5;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.9);
+}
+
+
+/* horns */
+
+.demon-horns {
+  position: absolute;
+  top: 50px;
+  left: 50%;
+  width: 160px;
+  height: 130px;
+  transform: translateX(-50%);
+  z-index: 4;
+}
+
+.horn {
+  position: absolute;
+  width: 65px;
+  height: 120px;
+  background: #030303;
+}
+
+.horn-left {
+  left: 0;
+  border-radius: 80% 10% 0 0;
+  transform: rotate(-35deg);
+  clip-path: polygon(
+    100% 100%,
+    30% 65%,
+    0 0,
+    55% 30%
+  );
+}
+
+.horn-right {
+  right: 0;
+  border-radius: 10% 80% 0 0;
+  transform: rotate(35deg);
+  clip-path: polygon(
+    0 100%,
+    70% 65%,
+    100% 0,
+    45% 30%
+  );
+}
+
+
+/* eyes */
+
+.demon-eye {
+  position: absolute;
+  top: 52%;
+  width: 24px;
+  height: 8px;
+  background: #ff2020;
+  box-shadow:
+    0 0 8px #ff0000,
+    0 0 18px rgba(255, 0, 0, 0.8);
+  border-radius: 50%;
+}
+
+.eye-left {
+  left: 20px;
+  transform: rotate(8deg);
+}
+
+.eye-right {
+  right: 20px;
+  transform: rotate(-8deg);
+}
+
+
+/* neck */
+
+.demon-neck {
+  position: absolute;
+  left: 50%;
+  top: 190px;
+  width: 48px;
+  height: 45px;
+  transform: translateX(-50%);
+  background: #080808;
+}
+
+
+/* body */
+
+.demon-body {
+  position: absolute;
+  left: 50%;
+  top: 215px;
+  width: 150px;
+  height: 190px;
+  transform: translateX(-50%);
+  background:
+    linear-gradient(
+      90deg,
+      #040404,
+      #151010 50%,
+      #040404
+    );
+  clip-path: polygon(
+    25% 0,
+    75% 0,
+    100% 100%,
+    0 100%
+  );
+}
+
+.demon-armor {
+  position: absolute;
+  left: 50%;
+  top: 15px;
+  width: 100px;
+  height: 130px;
+  transform: translateX(-50%);
+  border: 2px solid #260505;
+  clip-path: polygon(
+    50% 0,
+    100% 25%,
+    85% 100%,
+    15% 100%,
+    0 25%
+  );
+}
+
+.demon-chest {
+  position: absolute;
+  left: 50%;
+  top: 38px;
+  width: 5px;
+  height: 100px;
+  transform: translateX(-50%);
+  background: #5f0808;
+  box-shadow: 0 0 12px rgba(200, 0, 0, 0.4);
+}
+
+
+/* arms */
+
+.demon-arm {
+  position: absolute;
+  top: 225px;
+  width: 48px;
+  height: 180px;
+  background: #050505;
+  z-index: 4;
+}
+
+.arm-left {
+  left: 20px;
+  transform: rotate(22deg);
+  transform-origin: top center;
+}
+
+.arm-right {
+  right: 20px;
+  transform: rotate(-38deg);
+  transform-origin: top center;
+}
+
+.demon-hand {
+  position: absolute;
+  bottom: -12px;
+  left: 50%;
+  width: 38px;
+  height: 38px;
+  transform: translateX(-50%);
+  background: #080808;
+  border-radius: 50%;
+}
+
+
+/* =========================================================
+   BOSS WEAPON
+   ========================================================= */
+
+.boss-weapon {
+  position: absolute;
+  right: -40px;
+  top: 170px;
+  width: 250px;
+  height: 30px;
+  transform: rotate(-28deg);
+  transform-origin: left center;
+  z-index: 8;
+  animation: weaponSwing 3.2s ease-in-out 1.2s infinite;
+}
+
+.weapon-handle {
+  position: absolute;
+  left: 0;
+  top: 12px;
+  width: 110px;
+  height: 10px;
+  background: #17100b;
+  border: 1px solid #6e4c22;
+}
+
+.weapon-blade {
+  position: absolute;
+  left: 95px;
+  top: -8px;
+  width: 150px;
+  height: 30px;
+  background:
+    linear-gradient(
+      135deg,
+      #f5eee1,
+      #8b8985 45%,
+      #2b2927
+    );
+  clip-path: polygon(
+    0 35%,
+    78% 35%,
+    100% 50%,
+    78% 65%,
+    0 65%
+  );
+  filter:
+    drop-shadow(0 0 7px rgba(255, 255, 255, 0.25));
+}
+
+@keyframes weaponSwing {
+
+  0%,
+  100% {
+    transform: rotate(-28deg);
+  }
+
+  38% {
+    transform: rotate(-28deg);
+  }
+
+  52% {
+    transform: rotate(12deg) translateX(35px);
+  }
+
+  65% {
+    transform: rotate(-28deg);
+  }
+}
+
+
+/* =========================================================
+   SLASH
+   ========================================================= */
+
+.weapon-slash {
+  position: absolute;
+  left: -30vw;
+  top: 42%;
+  width: 160vw;
+  height: 5px;
+  transform: rotate(-18deg) translateX(-120%);
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 50, 50, 0.2),
+      white,
+      #ff2525,
+      rgba(255, 20, 20, 0.5),
+      transparent
+    );
+  box-shadow:
+    0 0 8px white,
+    0 0 22px #ff0000,
+    0 0 50px #b00000;
+  opacity: 0;
+  z-index: 20;
+  animation: slashAttack 3.8s ease-in-out 1.8s infinite;
+}
+
+.weapon-slash span {
+  display: block;
+  width: 100%;
+  height: 35px;
+  transform: translateY(-15px);
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 0, 0, 0.25),
+      transparent
+    );
+  filter: blur(8px);
+}
+
+@keyframes slashAttack {
+
+  0% {
+    opacity: 0;
+    transform: rotate(-18deg) translateX(-120%);
+  }
+
+  8% {
+    opacity: 1;
+  }
+
+  20% {
+    opacity: 1;
+    transform: rotate(-18deg) translateX(120%);
+  }
+
+  23%,
+  100% {
+    opacity: 0;
+    transform: rotate(-18deg) translateX(120%);
+  }
+}
+
+
+/* =========================================================
+   GROUND
+   ========================================================= */
+
+.hell-ground {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 25%;
+  background:
+    linear-gradient(
+      to top,
+      #020202,
+      rgba(10, 0, 0, 0.95),
+      transparent
+    );
+  z-index: 8;
+}
+
+.lava-line {
+  position: absolute;
+  bottom: 8%;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      #7d0000,
+      #ff3010,
+      #7d0000,
+      transparent
+    );
+  box-shadow:
+    0 0 12px #ff1800,
+    0 0 35px rgba(255, 0, 0, 0.4);
+  z-index: 9;
+}
+
+
+/* =========================================================
+   EMBERS
+   ========================================================= */
+
+.embers {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.embers i {
+  position: absolute;
+  bottom: -20px;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #ff3b18;
+  box-shadow: 0 0 8px #ff2600;
+  animation: emberRise linear infinite;
+}
+
+.embers i:nth-child(1) {
+  left: 5%;
+  animation-duration: 5s;
+}
+
+.embers i:nth-child(2) {
+  left: 12%;
+  animation-duration: 7s;
+  animation-delay: 1s;
+}
+
+.embers i:nth-child(3) {
+  left: 20%;
+  animation-duration: 6s;
+}
+
+.embers i:nth-child(4) {
+  left: 28%;
+  animation-duration: 8s;
+  animation-delay: 2s;
+}
+
+.embers i:nth-child(5) {
+  left: 35%;
+  animation-duration: 5s;
+}
+
+.embers i:nth-child(6) {
+  left: 44%;
+  animation-duration: 9s;
+  animation-delay: 1s;
+}
+
+.embers i:nth-child(7) {
+  left: 52%;
+  animation-duration: 6s;
+}
+
+.embers i:nth-child(8) {
+  left: 60%;
+  animation-duration: 7s;
+}
+
+.embers i:nth-child(9) {
+  left: 68%;
+  animation-duration: 5s;
+}
+
+.embers i:nth-child(10) {
+  left: 76%;
+  animation-duration: 8s;
+}
+
+.embers i:nth-child(11) {
+  left: 83%;
+  animation-duration: 6s;
+}
+
+.embers i:nth-child(12) {
+  left: 90%;
+  animation-duration: 9s;
+}
+
+.embers i:nth-child(13) {
+  left: 15%;
+  animation-duration: 7s;
+}
+
+.embers i:nth-child(14) {
+  left: 48%;
+  animation-duration: 5s;
+}
+
+.embers i:nth-child(15) {
+  left: 73%;
+  animation-duration: 7s;
+}
+
+.embers i:nth-child(16) {
+  left: 32%;
+  animation-duration: 6s;
+}
+
+.embers i:nth-child(17) {
+  left: 56%;
+  animation-duration: 8s;
+}
+
+.embers i:nth-child(18) {
+  left: 88%;
+  animation-duration: 5s;
+}
+
+.embers i:nth-child(19) {
+  left: 40%;
+  animation-duration: 9s;
+}
+
+@keyframes emberRise {
+
+  0% {
+    transform: translateY(0) scale(0.5);
+    opacity: 0;
+  }
+
+  15% {
+    opacity: 1;
+  }
+
+  100% {
+    transform:
+      translateY(-90vh)
+      translateX(40px)
+      scale(1);
+    opacity: 0;
+  }
+}
+
+
+/* =========================================================
+   INTRO CONTENT
+   ========================================================= */
+
+.intro-content {
+  position: absolute;
+  left: 50%;
+  top: 52%;
+  width: 90%;
+  max-width: 700px;
+  transform: translate(-50%, -50%);
   text-align: center;
-  cursor: pointer;
-  border: 1px solid #334155;
-  transition: border-color 0.2s;
+  z-index: 30;
+  pointer-events: none;
 }
 
-.game-card:hover {
-  border-color: #38bdf8;
+.intro-overline {
+  margin: 0 0 10px;
+  color: #d4b4a8;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 6px;
 }
 
-/* Modal Styling */
-.modal {
-  position: fixed;
-  top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0,0,0,0.8);
+.intro-title {
+  margin: 0;
+  font-family: var(--font-gothic);
+  font-size: clamp(3.5rem, 10vw, 7rem);
+  line-height: 0.95;
+  letter-spacing: 8px;
+  color: #f8eeee;
+  text-shadow:
+    0 0 20px rgba(255, 0, 0, 0.25),
+    0 5px 30px #000;
+}
+
+.intro-title span {
+  color: #c91515;
+  text-shadow:
+    0 0 15px rgba(255, 0, 0, 0.5);
+}
+
+.intro-divider {
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000;
+  gap: 12px;
+  margin: 18px auto;
 }
 
-.modal-content {
-  background: #1e293b;
-  padding: 25px;
-  border-radius: 10px;
-  width: 300px;
-  text-align: center;
-  position: relative;
+.intro-divider span {
+  width: 70px;
+  height: 1px;
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      #8e1b1b
+    );
 }
 
-.close-btn {
-  position: absolute;
-  top: 10px; right: 15px;
-  font-size: 20px;
-  cursor: pointer;
+.intro-divider span:last-child {
+  background:
+    linear-gradient(
+      90deg,
+      #8e1b1b,
+      transparent
+    );
 }
 
-.form-group input {
-  width: 90%;
-  padding: 10px;
-  margin: 8px 0;
-  border-radius: 5px;
-  border: 1px solid #334155;
-  background: #0f172a;
+.intro-divider b {
+  color: #d9a441;
+}
+
+.intro-subtitle {
+  margin: 0;
+  font-family: var(--font-gothic);
+  font-size: clamp(15px, 3vw, 24px);
+  letter-spacing: 7px;
+  color: #eee2d8;
+}
+
+.intro-description {
+  margin: 15px auto 25px;
+  max-width: 520px;
+  color: #a99a96;
+  font-size: 11px;
+  line-height: 1.8;
+  letter-spacing: 3px;
+}
+
+
+/* ENTER BUTTON */
+
+.enter-dungeon-btn {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 22px;
+  padding: 15px 25px;
+  border: 1px solid rgba(220, 35, 35, 0.8);
+  background:
+    linear-gradient(
+      135deg,
+      rgba(100, 0, 0, 0.9),
+      rgba(25, 2, 2, 0.95)
+    );
   color: white;
+  font-family: var(--font-gothic);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  cursor: pointer;
+  box-shadow:
+    inset 0 0 20px rgba(255, 0, 0, 0.08),
+    0 0 20px rgba(150, 0, 0, 0.25);
+  transition: 0.3s ease;
 }
 
-.btn-primary { background: #3b82f6; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; }
-.btn-secondary { background: #10b981; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; }
-.btn-google { background: white; color: black; border: none; padding: 10px; border-radius: 6px; cursor: pointer; width: 100%; font-weight: bold; }
+.enter-dungeon-btn b {
+  color: #ff3030;
+  font-size: 20px;
+  transition: transform
