@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard - NexusVerse</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Segoe UI,Arial,sans-serif;background:radial-gradient(ellipse at top,#2a0508 0%,#080304 55%) fixed;color:#f5eaea;min-height:100vh}
+header{border-bottom:1px solid #3d1418;display:flex;justify-content:space-between;align-items:center;padding:14px 24px;background:#140709;position:sticky;top:0;z-index:5}
+header a{color:#ef4444;text-decoration:none;margin-left:16px;font-size:14px}
+.logo{font-family:Georgia,'Times New Roman',serif;font-weight:bold;font-size:20px;letter-spacing:3px;text-transform:uppercase;color:#f5eaea;text-shadow:0 0 12px rgba(239,68,68,.6)}
+nav{display:flex;gap:8px;padding:12px 24px;flex-wrap:wrap}
+nav button{background:#140709;color:#e2cfd0;border:1px solid #3d1418;padding:8px 16px;border-radius:6px;cursor:pointer}
+nav button.active{background:#b91c1c;color:#fff;border-color:#ef4444;box-shadow:0 0 10px rgba(239,68,68,.5)}
+main{padding:0 24px 40px;max-width:1100px;margin:auto}
+section{display:none}section.active{display:block}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:20px}
+.card,.panel{background:rgba(20,7,9,.85);border:1px solid #3d1418;border-radius:8px;padding:16px;box-shadow:0 0 18px rgba(185,28,28,.12)}h3{font-family:Georgia,serif;letter-spacing:1px}
+.card h3{margin:0;font-size:13px;color:#a88b8e;font-weight:normal}
+.card .num{font-size:28px;font-weight:bold;color:#ef4444;margin-top:6px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px}
+input,select,textarea{width:100%;padding:10px;margin:6px 0 12px;background:#080304;color:#fff;border:1px solid #3d1418;border-radius:6px}
+label{font-size:13px;color:#e2cfd0}
+.btn{background:#b91c1c;color:#fff;border:0;padding:9px 16px;border-radius:6px;cursor:pointer;font-weight:bold}
+.btn:hover{background:#dc2626}
+.btn.red{background:#dc2626}.btn.green{background:#166534}.btn.gray{background:#4a2226}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:10px 8px;border-bottom:1px solid #3d1418;text-align:left}
+th{color:#a88b8e;font-weight:normal}
+.tag{padding:2px 8px;border-radius:10px;font-size:12px}
+.pending{background:#ca8a04}.approved{background:#16a34a}.rejected{background:#dc2626}
+#msg{padding:10px 24px;font-size:14px}
+#gate{max-width:420px;margin:100px auto;text-align:center;background:rgba(20,7,9,.9);padding:30px;border-radius:10px;border:1px solid #7f1d1d;box-shadow:0 0 40px rgba(185,28,28,.35)}#gate h2{font-family:Georgia,serif;letter-spacing:2px;color:#ef4444}
+.wrap{overflow-x:auto}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">☠ NexusVerse // Admin</div>
+  <div><span id="who"></span><a href="index.html">Home</a><a href="#" id="logout">Logout</a></div>
+</header>
+
+<div id="gate">
+  <h2 style="margin-top:0">🔐 Admin Sign In</h2>
+  <p id="gateMsg" style="color:#a88b8e;font-size:14px">Only the site owner can enter.</p>
+  <input id="aEmail" type="email" placeholder="Admin email">
+  <input id="aPass" type="password" placeholder="Password">
+  <button class="btn" id="aLogin" style="width:100%">Sign In</button>
+  <p><a style="color:#ef4444;font-size:13px" href="index.html">← Back to Home</a></p>
+</div>
+
+<div id="app" style="display:none">
+<nav id="tabs">
+  <button data-t="dash" class="active">Analytics</button>
+  <button data-t="add">Add Game</button>
+  <button data-t="mod">Moderation</button>
+  <button data-t="users">Users</button>
+</nav>
+<div id="msg"></div>
+<main>
+
+<section id="dash" class="active">
+  <div class="cards">
+    <div class="card"><h3>Total Games</h3><div class="num" id="cGames">0</div></div>
+    <div class="card"><h3>Total Plays</h3><div class="num" id="cPlays">0</div></div>
+    <div class="card"><h3>Registered Users</h3><div class="num" id="cUsers">0</div></div>
+    <div class="card"><h3>Avg Rating</h3><div class="num" id="cRate">0</div></div>
+  </div>
+  <div class="grid2">
+    <div class="panel"><h3>Top Games by Plays</h3><canvas id="chPlays"></canvas></div>
+    <div class="panel"><h3>Popular Categories</h3><canvas id="chCat"></canvas></div>
+    <div class="panel"><h3>Daily Active Users (7 days)</h3><canvas id="chDau"></canvas></div>
+  </div>
+  <p><button class="btn" id="exportBtn">Export Report (CSV)</button></p>
+</section>
+
+<section id="add">
+  <div class="panel" style="max-width:600px">
+    <h3 id="formTitle">Add / Edit Game</h3>
+    <input type="hidden" id="gId">
+    <label>Title</label><input id="gTitle">
+    <label>Description</label><textarea id="gDesc" rows="3"></textarea>
+    <label>Category</label>
+    <select id="gCat"><option>Action</option><option>Puzzle</option><option>Racing</option><option>Shooter</option><option>Strategy</option><option>Sports</option><option>Arcade</option><option>Multiplayer</option></select>
+    <label>Game URL (iframe / hosted index.html)</label><input id="gUrl" placeholder="https://...">
+    <label>OR upload your game as a single .html file (max ~900 KB)</label><input id="gFile" type="file" accept=".html,.htm">
+    <label>Thumbnail URL</label><input id="gThumb" placeholder="https://...">
+    <label>Cover Banner URL</label><input id="gBanner" placeholder="https://...">
+    <button class="btn" id="saveGame">Save Game</button>
+    <button class="btn gray" id="clearForm">Clear</button>
+  </div>
+</section>
+
+<section id="mod">
+  <div class="panel wrap">
+    <table>
+      <thead><tr><th>Title</th><th>Category</th><th>Status</th><th>Featured</th><th>Actions</th></tr></thead>
+      <tbody id="gameRows"></tbody>
+    </table>
+  </div>
+</section>
+
+<section id="users">
+  <div class="panel wrap">
+    <table>
+      <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Action</th></tr></thead>
+      <tbody id="userRows"></tbody>
+    </table>
+  </div>
+</section>
+
+</main>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getFirestore, collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, setDoc, serverTimestamp }
+  from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCVbvw2Tj5rxKhsG7JYfvBXVAwGgaULyMY",
+  authDomain: "nexusverse-ce94f.firebaseapp.com",
+  projectId: "nexusverse-ce94f",
+  storageBucket: "nexusverse-ce94f.firebasestorage.app",
+  messagingSenderId: "481484791977",
+  appId: "1:481484791977:web:b39792bbc9f8203a2349b8"
+};
+// >>> PUT YOUR ADMIN EMAIL(S) HERE <<<
+const ADMIN_EMAILS = ["your-admin-email@gmail.com"];
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const $ = id => document.getElementById(id);
+const say = (t, ok = true) => { $("msg").style.color = ok ? "#22c55e" : "#ef4444"; $("msg").textContent = t; setTimeout(() => $("msg").textContent = "", 4000); };
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+let games = [], users = [], sessions = [], charts = {};
+Chart.defaults.color = '#d8c4c5'; Chart.defaults.borderColor = '#3d1418';
+
+const gateMsg = (t, ok) => { $("gateMsg").style.color = ok ? "#a88b8e" : "#ef4444"; $("gateMsg").textContent = t; };
+
+$("aLogin").onclick = async () => {
+  try { await signInWithEmailAndPassword(auth, $("aEmail").value.trim(), $("aPass").value); }
+  catch (e) { gateMsg(e.code === "auth/invalid-credential" ? "Wrong email or password." : e.code, false); }
+};
+
+onAuthStateChanged(auth, async user => {
+  if (!user) { $("gate").style.display = "block"; $("app").style.display = "none"; return; }
+  const isAdmin = ADMIN_EMAILS.map(e => e.toLowerCase()).includes((user.email || "").toLowerCase());
+  if (!isAdmin) {
+    await signOut(auth);
+    $("gate").style.display = "block"; $("app").style.display = "none";
+    gateMsg("Access denied. This account is not an admin.", false);
+    return;
+  }
+  $("gate").style.display = "none"; $("app").style.display = "block";
+  $("who").textContent = user.email;
+  loadAll();
+});
+
+$("logout").onclick = async e => { e.preventDefault(); await signOut(auth); location.href = "index.html"; };
+
+$("tabs").onclick = e => {
+  const t = e.target.dataset.t; if (!t) return;
+  document.querySelectorAll("nav button").forEach(b => b.classList.toggle("active", b === e.target));
+  document.querySelectorAll("main section").forEach(s => s.classList.toggle("active", s.id === t));
+};
+
+async function loadAll() {
+  try {
+    games = (await getDocs(collection(db, "games"))).docs.map(d => ({ id: d.id, ...d.data() }));
+    users = (await getDocs(collection(db, "users"))).docs.map(d => ({ id: d.id, ...d.data() }));
+    try { sessions = (await getDocs(collection(db, "sessions"))).docs.map(d => d.data()); } catch (e) { sessions = []; }
+    renderDash(); renderGames(); renderUsers();
+  } catch (e) { say("Load error: " + e.code + " (check Firestore rules)", false); }
+}
+
+function draw(id, cfg) { if (charts[id]) charts[id].destroy(); charts[id] = new Chart($(id), cfg); }
+
+function renderDash() {
+  const plays = games.reduce((s, g) => s + (+g.playCount || 0), 0);
+  const rated = games.filter(g => +g.ratingCount > 0);
+  $("cGames").textContent = games.length;
+  $("cPlays").textContent = plays;
+  $("cUsers").textContent = users.length;
+  $("cRate").textContent = rated.length ? (rated.reduce((s, g) => s + (+g.rating || 0), 0) / rated.length).toFixed(1) : "0";
+
+  const top = [...games].sort((a, b) => (b.playCount || 0) - (a.playCount || 0)).slice(0, 8);
+  draw("chPlays", { type: "bar", data: { labels: top.map(g => g.title || "?"), datasets: [{ label: "Plays", data: top.map(g => g.playCount || 0), backgroundColor: "#ef4444" }] } });
+
+  const cats = {}; games.forEach(g => cats[g.category || "Other"] = (cats[g.category || "Other"] || 0) + 1);
+  draw("chCat", { type: "doughnut", data: { labels: Object.keys(cats), datasets: [{ data: Object.values(cats), backgroundColor: ["#ef4444","#b91c1c","#7f1d1d","#f87171","#991b1b","#fca5a5","#dc2626","#450a0a"], borderColor: "#080304" }] } });
+
+  const days = [...Array(7)].map((_, i) => { const d = new Date(); d.setDate(d.getDate() - (6 - i)); return d.toISOString().slice(0, 10); });
+  const dau = days.map(day => new Set(sessions.filter(s => {
+    const t = s.startTime?.toDate ? s.startTime.toDate() : (s.startTime ? new Date(s.startTime) : null);
+    return t && t.toISOString().slice(0, 10) === day;
+  }).map(s => s.userId)).size);
+  draw("chDau", { type: "line", data: { labels: days, datasets: [{ label: "DAU", data: dau, borderColor: "#ef4444", tension: .3 }] } });
+}
+
+$("exportBtn").onclick = () => {
+  const rows = [["Title", "Category", "Status", "Plays", "Rating", "RatingCount"]]
+    .concat(games.map(g => [g.title, g.category, g.status, g.playCount || 0, g.rating || 0, g.ratingCount || 0]));
+  const csv = rows.map(r => r.map(v => '"' + String(v ?? "").replace(/"/g, '""') + '"').join(",")).join("\n");
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+  a.download = "nexusverse_report.csv"; a.click();
+};
+
+function renderGames() {
+  $("gameRows").innerHTML = games.map(g => `<tr>
+    <td>${esc(g.title)}</td><td>${esc(g.category)}</td>
+    <td><span class="tag ${esc(g.status || "pending")}">${esc(g.status || "pending")}</span></td>
+    <td>${g.featured ? "⭐ Yes" : "No"}</td>
+    <td>
+      <button class="btn green" data-a="approve" data-id="${g.id}">Approve</button>
+      <button class="btn red" data-a="reject" data-id="${g.id}">Reject</button>
+      <button class="btn" data-a="feature" data-id="${g.id}">${g.featured ? "Unfeature" : "Feature"}</button>
+      <button class="btn gray" data-a="edit" data-id="${g.id}">Edit</button>
+      <button class="btn red" data-a="del" data-id="${g.id}">Delete</button>
+    </td></tr>`).join("") || "<tr><td colspan=5>No games yet. Use 'Add Game'.</td></tr>";
+}
+
+$("gameRows").onclick = async e => {
+  const a = e.target.dataset.a, id = e.target.dataset.id; if (!a) return;
+  const g = games.find(x => x.id === id);
+  try {
+    if (a === "approve") await updateDoc(doc(db, "games", id), { status: "approved" });
+    if (a === "reject") await updateDoc(doc(db, "games", id), { status: "rejected", featured: false });
+    if (a === "feature") await updateDoc(doc(db, "games", id), { featured: !g.featured });
+    if (a === "del") { if (!confirm("Delete this game?")) return; await deleteDoc(doc(db, "games", id)); }
+    if (a === "edit") {
+      $("gId").value = id; $("gTitle").value = g.title || ""; $("gDesc").value = g.description || "";
+      $("gCat").value = g.category || "Action"; $("gUrl").value = g.gameUrl || "";
+      $("gThumb").value = g.thumbnailUrl || ""; $("gBanner").value = g.bannerUrl || "";
+      document.querySelector('[data-t="add"]').click(); return;
+    }
+    say("Done"); loadAll();
+  } catch (err) { say("Error: " + err.code, false); }
+};
+
+$("saveGame").onclick = async () => {
+  const data = {
+    title: $("gTitle").value.trim(), description: $("gDesc").value.trim(), category: $("gCat").value,
+    gameUrl: $("gUrl").value.trim(), thumbnailUrl: $("gThumb").value.trim(), bannerUrl: $("gBanner").value.trim()
+  };
+  const f = $("gFile").files[0];
+  if (f) {
+    if (f.size > 900000) return say("File too big (max ~900 KB). Put big games in the repo and use a URL.", false);
+    data.htmlContent = await f.text();
+  }
+  if (!data.title || (!data.gameUrl && !data.htmlContent && !$("gId").value)) return say("Title and a Game URL or .html file are required", false);
+  try {
+    const id = $("gId").value;
+    if (id) await updateDoc(doc(db, "games", id), data);
+    else {
+      await addDoc(collection(db, "games"), { ...data, status: "approved", featured: false, playCount: 0, rating: 0, ratingCount: 0, uploadedBy: auth.currentUser.uid, createdAt: serverTimestamp() });
+      await addDoc(collection(db, "notifications"), { userId: "all", title: "New game!", message: data.title + " was just added.", isRead: false, timestamp: serverTimestamp() });
+    }
+    say("Game saved"); $("clearForm").click(); loadAll();
+  } catch (err) { say("Error: " + err.code, false); }
+};
+$("clearForm").onclick = () => { ["gId", "gTitle", "gDesc", "gUrl", "gThumb", "gBanner", "gFile"].forEach(i => $(i).value = ""); };
+
+function renderUsers() {
+  $("userRows").innerHTML = users.map(u => `<tr>
+    <td>${esc(u.name)}</td><td>${esc(u.email)}</td><td>${esc(u.role || "player")}</td>
+    <td><button class="btn gray" data-id="${u.id}" data-r="${u.role === "admin" ? "player" : "admin"}">Make ${u.role === "admin" ? "Player" : "Admin"}</button></td></tr>`).join("")
+    || "<tr><td colspan=4>No users found.</td></tr>";
+}
+$("userRows").onclick = async e => {
+  const id = e.target.dataset.id; if (!id) return;
+  try { await setDoc(doc(db, "users", id), { role: e.target.dataset.r }, { merge: true }); say("Role updated"); loadAll(); }
+  catch (err) { say("Error: " + err.code, false); }
+};
+</script>
+</body>
+</html>
