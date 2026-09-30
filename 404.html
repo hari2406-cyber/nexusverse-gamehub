@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>Redirecting...</title></head>
+<body style="background:#0f172a;color:#fff;font-family:Arial;text-align:center;padding-top:80px">
+<p>Redirecting...</p>
+<script>
+const parts = location.pathname.split('/').filter(Boolean);
+let base = '/';
+if (parts.length && !parts[0].toLowerCase().includes('admin') && !parts[0].includes('.')) base = '/' + parts[0] + '/';
+if (location.pathname.toLowerCase().includes('admin')) location.replace(base + 'admin.html');
+else location.replace(base);
+</script>
+</body></html>
