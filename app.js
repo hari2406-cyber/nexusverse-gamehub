@@ -94,6 +94,11 @@ window.loginGoogle = async () => {
 // 4. Logout Function
 window.logout = () => signOut(auth);
 
+// 5. Forgot Password — sends the user to the reset-password page
+window.forgotPassword = () => {
+  window.location.href = 'forgot-password.html';
+};
+
 // 5. Active User Listener
 onAuthStateChanged(auth, (user) => {
   const loginBtn = document.getElementById('loginBtn');
