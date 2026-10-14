@@ -9,6 +9,7 @@ import {
   signOut, 
   onAuthStateChanged 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getFirestore, collection, onSnapshot, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // Your Firebase Config
 const firebaseConfig = {
@@ -24,7 +25,182 @@ const firebaseConfig = {
 // Initialize Firebase & Auth
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const db = getFirestore(app);
 const googleProvider = new GoogleAuthProvider();
+
+// Notification state is stored per browser profile and account, so a visitor's
+// read/unread choice never changes the notification for everybody else.
+const notifButton = document.getElementById('notifBtn');
+const notifPanel = document.getElementById('notificationPanel');
+const notifList = document.getElementById('notificationList');
+const notifCount = document.getElementById('notifCount');
+const markNotificationsRead = document.getElementById('markNotificationsRead');
+const announcementBanner = document.getElementById('announcementBanner');
+const announcementText = document.getElementById('announcementText');
+const dismissAnnouncement = document.getElementById('dismissAnnouncement');
+const notificationToastRegion = document.getElementById('notificationToastRegion');
+let notifications = [];
+let notificationsLoaded = false;
+let notificationError = false;
+
+const readStorageKey = () => `nexusverse-read-notifications-${auth.currentUser?.uid || 'guest'}`;
+const getReadNotificationIds = () => {
+  try {
+    const value = JSON.parse(localStorage.getItem(readStorageKey()) || '[]');
+    return new Set(Array.isArray(value) ? value : []);
+  } catch {
+    return new Set();
+  }
+};
+const saveReadNotificationIds = ids => {
+  try { localStorage.setItem(readStorageKey(), JSON.stringify([...ids])); } catch { /* Storage may be disabled. */ }
+};
+const showNotificationToast = item => {
+  if (!notificationToastRegion) return;
+  const toast = document.createElement('div');
+  toast.className = 'notification-toast';
+  const title = document.createElement('strong');
+  title.textContent = item.title || 'NexusVerse update';
+  const message = document.createElement('span');
+  message.textContent = item.message || '';
+  toast.append(title, message);
+  notificationToastRegion.append(toast);
+  window.setTimeout(() => toast.remove(), 6000);
+};
+const notificationDate = value => {
+  if (!value) return null;
+  const date = typeof value.toDate === 'function' ? value.toDate() : new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+};
+const renderNotifications = () => {
+  if (!notifList || !notifCount) return;
+  const readIds = getReadNotificationIds();
+  const visible = notifications
+    .filter(item => item.userId === 'all' || (auth.currentUser && item.userId === auth.currentUser.uid))
+    .sort((a, b) => (notificationDate(b.timestamp)?.getTime() || 0) - (notificationDate(a.timestamp)?.getTime() || 0))
+    .slice(0, 30);
+  const unreadCount = visible.reduce((count, item) => count + (readIds.has(item.id) ? 0 : 1), 0);
+  notifCount.textContent = unreadCount > 99 ? '99+' : String(unreadCount);
+  notifCount.hidden = unreadCount === 0;
+  notifList.replaceChildren();
+
+  const announcement = visible.find(item => item.type === 'announcement' && !readIds.has(item.id));
+  if (announcementBanner && announcementText) {
+    announcementBanner.hidden = !announcement;
+    announcementText.textContent = announcement ? `${announcement.title || 'NexusVerse announcement'}: ${announcement.message || ''}` : '';
+    if (dismissAnnouncement) dismissAnnouncement.dataset.notificationRead = announcement?.id || '';
+  }
+
+  if (notificationError) {
+    const message = document.createElement('p');
+    message.className = 'notification-empty';
+    message.textContent = 'Notifications could not be loaded. Check the Firestore access rules and try again.';
+    notifList.append(message);
+    return;
+  }
+  if (!notificationsLoaded) {
+    const message = document.createElement('p');
+    message.className = 'notification-empty';
+    message.textContent = 'Loading notifications…';
+    notifList.append(message);
+    return;
+  }
+  if (!visible.length) {
+    const message = document.createElement('p');
+    message.className = 'notification-empty';
+    message.textContent = 'You’re all caught up. New game announcements will appear here.';
+    notifList.append(message);
+    return;
+  }
+
+  visible.forEach(item => {
+    const entry = document.createElement('article');
+    const isRead = readIds.has(item.id);
+    entry.className = `notification-item${isRead ? '' : ' unread'}`;
+    const title = document.createElement('h3');
+    title.textContent = item.title || 'NexusVerse update';
+    const body = document.createElement('p');
+    body.textContent = item.message || '';
+    entry.append(title, body);
+    const date = notificationDate(item.timestamp);
+    if (date) {
+      const time = document.createElement('time');
+      time.dateTime = date.toISOString();
+      time.textContent = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(date);
+      entry.append(time);
+    }
+    if (!isRead) {
+      const markRead = document.createElement('button');
+      markRead.type = 'button';
+      markRead.dataset.notificationRead = item.id;
+      markRead.textContent = 'Mark read';
+      markRead.setAttribute('aria-label', `Mark ${item.title || 'notification'} as read`);
+      entry.append(markRead);
+    }
+    notifList.append(entry);
+  });
+};
+
+if (notifButton && notifPanel && notifList) {
+  notifButton.addEventListener('click', () => {
+    const isOpening = notifPanel.hidden;
+    notifPanel.hidden = !isOpening;
+    notifButton.setAttribute('aria-expanded', String(isOpening));
+  });
+  notifList.addEventListener('click', event => {
+    const button = event.target.closest('[data-notification-read]');
+    if (!button) return;
+    const ids = getReadNotificationIds();
+    ids.add(button.dataset.notificationRead);
+    saveReadNotificationIds(ids);
+    renderNotifications();
+  });
+  markNotificationsRead?.addEventListener('click', () => {
+    const ids = getReadNotificationIds();
+    notifications.forEach(item => {
+      if (item.userId === 'all' || (auth.currentUser && item.userId === auth.currentUser.uid)) ids.add(item.id);
+    });
+    saveReadNotificationIds(ids);
+    renderNotifications();
+  });
+  dismissAnnouncement?.addEventListener('click', () => {
+    const id = dismissAnnouncement.dataset.notificationRead;
+    if (!id) return;
+    const ids = getReadNotificationIds();
+    ids.add(id);
+    saveReadNotificationIds(ids);
+    renderNotifications();
+  });
+  document.addEventListener('click', event => {
+    if (!notifPanel.hidden && !event.target.closest('.notification-wrap')) {
+      notifPanel.hidden = true;
+      notifButton.setAttribute('aria-expanded', 'false');
+    }
+  });
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && !notifPanel.hidden) {
+      notifPanel.hidden = true;
+      notifButton.setAttribute('aria-expanded', 'false');
+      notifButton.focus();
+    }
+  });
+  onSnapshot(query(collection(db, 'notifications'), where('userId', '==', 'all')), snapshot => {
+    const incoming = snapshot.docs.map(item => ({ ...item.data(), id: item.id }));
+    if (notificationsLoaded) {
+      const knownIds = new Set(notifications.map(item => item.id));
+      incoming.filter(item => !knownIds.has(item.id) && item.type === 'new_game').forEach(showNotificationToast);
+    }
+    notifications = incoming;
+    notificationsLoaded = true;
+    notificationError = false;
+    renderNotifications();
+  }, error => {
+    console.error('Notifications listener failed:', error);
+    notificationsLoaded = true;
+    notificationError = true;
+    renderNotifications();
+  });
+}
 
 // Modal Functions
 window.openAuthModal = () => {
@@ -116,4 +292,5 @@ onAuthStateChanged(auth, (user) => {
     if (signupBtn) signupBtn.style.display = 'inline-block';
     if (userProfile) userProfile.style.display = 'none';
   }
+  renderNotifications();
 });
