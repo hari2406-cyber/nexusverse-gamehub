@@ -71,9 +71,20 @@
     </a>
 
     <div class="nav-actions">
-      <button class="nav-icon" id="notifBtn" type="button" aria-label="Notifications">
-        🔔 <span id="notifCount">1</span>
-      </button>
+      <div class="notification-wrap">
+        <button class="nav-icon" id="notifBtn" type="button" aria-label="Notifications" aria-expanded="false" aria-controls="notificationPanel">
+          🔔 <span id="notifCount" hidden>0</span>
+        </button>
+        <section class="notification-panel" id="notificationPanel" aria-label="Notifications" hidden>
+          <div class="notification-heading">
+            <h2>Notifications</h2>
+            <button id="markNotificationsRead" type="button">Mark all read</button>
+          </div>
+          <div id="notificationList" class="notification-list" aria-live="polite">
+            <p class="notification-empty">Loading notifications…</p>
+          </div>
+        </section>
+      </div>
       <a href="admin.html" class="admin-link">⚔ Admin</a>
       <div id="authSection" class="auth-section">
         <button class="login-btn" id="loginBtn" type="button" onclick="openAuthModal()">LOGIN</button>
@@ -87,6 +98,12 @@
   </header>
 
   <main id="hub" class="main-container">
+    <aside class="announcement-banner" id="announcementBanner" role="status" hidden>
+      <p id="announcementText"></p>
+      <button id="dismissAnnouncement" type="button" aria-label="Dismiss announcement">×</button>
+    </aside>
+    <div class="notification-toast-region" id="notificationToastRegion" aria-live="polite" aria-atomic="true"></div>
+
     <!-- HUB HERO -->
     <section class="hub-hero">
       <div class="section-kicker">✦ NEXUSVERSE // ARENA</div>
@@ -122,6 +139,7 @@
           id="gameFrame"
           src="cyber-blade.html"
           title="Cyber Blade"
+          loading="lazy"
           allow="fullscreen; camera; microphone; autoplay; gamepad"
           allowfullscreen
           sandbox="allow-scripts allow-same-origin allow-forms">
