@@ -74,6 +74,12 @@ th{color:#a88b8e;font-weight:normal}
     <div class="panel"><h3>Daily Active Users (7 days)</h3><canvas id="chDau"></canvas></div>
   </div>
   <p><button class="btn" id="exportBtn">Export Report (CSV)</button></p>
+  <div class="panel" style="max-width:600px;margin-top:16px">
+    <h3>Broadcast Announcement</h3>
+    <label for="announcementTitle">Title</label><input id="announcementTitle" maxlength="100" placeholder="Weekend tournament">
+    <label for="announcementMessage">Message</label><textarea id="announcementMessage" rows="3" maxlength="500" placeholder="Share an update with all visitors"></textarea>
+    <button class="btn" id="sendAnnouncement" type="button">Publish Announcement</button>
+  </div>
 </section>
 
 <section id="add">
@@ -260,9 +266,23 @@ $("saveGame").onclick = async () => {
     if (id) await updateDoc(doc(db, "games", id), data);
     else {
       await addDoc(collection(db, "games"), { ...data, status: "approved", featured: false, playCount: 0, rating: 0, ratingCount: 0, uploadedBy: auth.currentUser.uid, createdAt: serverTimestamp() });
-      await addDoc(collection(db, "notifications"), { userId: "all", title: "New game!", message: data.title + " was just added.", isRead: false, timestamp: serverTimestamp() });
+      await addDoc(collection(db, "notifications"), { userId: "all", type: "new_game", title: "New game!", message: data.title + " was just added.", isRead: false, timestamp: serverTimestamp() });
     }
     say("Game saved"); $("clearForm").click(); loadAll();
+  } catch (err) { say("Error: " + err.code, false); }
+};
+$("sendAnnouncement").onclick = async () => {
+  const title = $("announcementTitle").value.trim();
+  const message = $("announcementMessage").value.trim();
+  if (!title || !message) return say("Enter both an announcement title and message.", false);
+  try {
+    await addDoc(collection(db, "notifications"), {
+      userId: "all", type: "announcement", title, message,
+      isRead: false, timestamp: serverTimestamp()
+    });
+    $("announcementTitle").value = "";
+    $("announcementMessage").value = "";
+    say("Announcement published");
   } catch (err) { say("Error: " + err.code, false); }
 };
 $("clearForm").onclick = () => { ["gId", "gTitle", "gDesc", "gUrl", "gThumb", "gBanner", "gFile"].forEach(i => $(i).value = ""); };
