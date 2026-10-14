@@ -9,7 +9,7 @@ import {
   signOut, 
   onAuthStateChanged 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, collection, onSnapshot, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, onSnapshot, query, where, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // Your Firebase Config
 const firebaseConfig = {
@@ -39,6 +39,14 @@ const announcementBanner = document.getElementById('announcementBanner');
 const announcementText = document.getElementById('announcementText');
 const dismissAnnouncement = document.getElementById('dismissAnnouncement');
 const notificationToastRegion = document.getElementById('notificationToastRegion');
+const commentGame = document.getElementById('commentGame');
+const commentForm = document.getElementById('commentForm');
+const commentInput = document.getElementById('commentInput');
+const commentList = document.getElementById('commentList');
+const commentStatus = document.getElementById('commentStatus');
+const commentLoginNote = document.getElementById('commentLoginNote');
+const commentSubmit = document.getElementById('commentSubmit');
+let commentsUnsubscribe = null;
 let notifications = [];
 let notificationsLoaded = false;
 let notificationError = false;
@@ -72,6 +80,88 @@ const notificationDate = value => {
   const date = typeof value.toDate === 'function' ? value.toDate() : new Date(value);
   return Number.isNaN(date.getTime()) ? null : date;
 };
+
+const gameCommentIds = {
+  'Flappy Bird': 'flappy-bird', 'Pixel Battle': 'pixel-battle',
+  'Cyber Blade': 'cyber-blade', 'Spellcaster Arena': 'spellcaster-arena',
+  'Cyber Space Shooter': 'cyber-space-shooter'
+};
+const supportedCommentGames = new Set(Object.values(gameCommentIds));
+const loadComments = gameId => {
+  if (!commentList || !supportedCommentGames.has(gameId)) return;
+  commentsUnsubscribe?.();
+  commentList.replaceChildren(Object.assign(document.createElement('p'), { className: 'comment-empty', textContent: 'Loading comments…' }));
+  commentsUnsubscribe = onSnapshot(query(collection(db, 'comments'), where('gameId', '==', gameId)), snapshot => {
+    const items = snapshot.docs.map(item => ({ ...item.data(), id: item.id }))
+      .sort((a, b) => (notificationDate(b.createdAt)?.getTime() || 0) - (notificationDate(a.createdAt)?.getTime() || 0));
+    commentList.replaceChildren();
+    if (!items.length) {
+      commentList.append(Object.assign(document.createElement('p'), { className: 'comment-empty', textContent: 'No comments yet. Start the conversation!' }));
+      return;
+    }
+    items.slice(0, 50).forEach(item => {
+      const card = document.createElement('article');
+      card.className = 'comment-card';
+      const heading = document.createElement('div');
+      heading.className = 'comment-meta';
+      const author = document.createElement('strong');
+      author.textContent = item.authorName || 'Player';
+      const date = notificationDate(item.createdAt);
+      const time = document.createElement('time');
+      if (date) {
+        time.dateTime = date.toISOString();
+        time.textContent = date.toLocaleString();
+      }
+      heading.append(author, time);
+      const body = document.createElement('p');
+      body.textContent = item.text || '';
+      card.append(heading, body);
+      commentList.append(card);
+    });
+  }, error => {
+    console.error('Comments listener failed:', error);
+    commentList.replaceChildren(Object.assign(document.createElement('p'), { className: 'comment-empty', textContent: 'Comments could not load. Check Firestore rules and refresh.' }));
+  });
+};
+if (commentGame) {
+  commentGame.addEventListener('change', () => loadComments(commentGame.value));
+  window.selectCommentGame = title => {
+    const id = gameCommentIds[title];
+    if (!id) return;
+    commentGame.value = id;
+    loadComments(id);
+  };
+  loadComments(commentGame.value);
+}
+commentForm?.addEventListener('submit', async event => {
+  event.preventDefault();
+  const user = auth.currentUser;
+  const text = commentInput.value.trim();
+  if (!user) {
+    commentStatus.textContent = 'Please sign in before posting.';
+    window.openAuthModal?.();
+    return;
+  }
+  if (!text || text.length > 500) return;
+  commentSubmit.disabled = true;
+  commentStatus.textContent = 'Posting…';
+  try {
+    await addDoc(collection(db, 'comments'), {
+      gameId: commentGame.value,
+      text,
+      authorId: user.uid,
+      authorName: (user.displayName || user.email?.split('@')[0] || 'Player').slice(0, 40),
+      createdAt: serverTimestamp()
+    });
+    commentInput.value = '';
+    commentStatus.textContent = 'Comment posted.';
+  } catch (error) {
+    console.error('Comment post failed:', error);
+    commentStatus.textContent = 'Could not post. Check Firestore rules and try again.';
+  } finally {
+    commentSubmit.disabled = false;
+  }
+});
 const renderNotifications = () => {
   if (!notifList || !notifCount) return;
   const readIds = getReadNotificationIds();
@@ -287,10 +377,16 @@ onAuthStateChanged(auth, (user) => {
     if (signupBtn) signupBtn.style.display = 'none';
     if (userProfile) userProfile.style.display = 'inline-block';
     if (userName) userName.innerText = user.displayName || user.email.split('@')[0];
+    if (commentLoginNote) commentLoginNote.textContent = `Posting as ${user.displayName || user.email.split('@')[0]}.`;
+    if (commentInput) commentInput.disabled = false;
+    if (commentSubmit) commentSubmit.disabled = false;
   } else {
     if (loginBtn) loginBtn.style.display = 'inline-block';
     if (signupBtn) signupBtn.style.display = 'inline-block';
     if (userProfile) userProfile.style.display = 'none';
+    if (commentLoginNote) commentLoginNote.textContent = 'Sign in to post a comment. Comments are visible to everyone.';
+    if (commentInput) commentInput.disabled = true;
+    if (commentSubmit) commentSubmit.disabled = true;
   }
   renderNotifications();
 });

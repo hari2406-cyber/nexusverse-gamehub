@@ -71,6 +71,7 @@
     </a>
 
     <div class="nav-actions">
+      <a href="#community" class="community-nav-link">COMMUNITY</a>
       <div class="notification-wrap">
         <button class="nav-icon" id="notifBtn" type="button" aria-label="Notifications" aria-expanded="false" aria-controls="notificationPanel">
           🔔 <span id="notifCount" hidden>0</span>
@@ -230,6 +231,31 @@
         </div>
       </div>
     </section>
+
+    <section class="community-section" id="community">
+      <div class="community-heading">
+        <span class="small-label">NEXUS COMMUNITY</span>
+        <h2>PLAYER COMMENTS</h2>
+        <p>Share a thought about any realm. Comments are grouped by game and update live.</p>
+      </div>
+      <div class="community-panel">
+        <label for="commentGame">Choose a game</label>
+        <select id="commentGame">
+          <option value="flappy-bird">Flappy Bird</option>
+          <option value="pixel-battle">Pixel Battle</option>
+          <option value="cyber-blade" selected>Cyber Blade</option>
+          <option value="spellcaster-arena">Spellcaster Arena</option>
+          <option value="cyber-space-shooter">Cyber Space Shooter</option>
+        </select>
+        <div class="comment-login-note" id="commentLoginNote">Sign in to post a comment.</div>
+        <form id="commentForm" class="comment-form">
+          <label class="sr-only" for="commentInput">Write a comment</label>
+          <textarea id="commentInput" maxlength="500" rows="3" placeholder="Share your thoughts (up to 500 characters)" required disabled></textarea>
+          <div class="comment-form-footer"><span id="commentStatus" role="status"></span><button class="enter-hub-btn" type="submit" id="commentSubmit" disabled>POST COMMENT</button></div>
+        </form>
+        <div id="commentList" class="comment-list" aria-live="polite"><p class="comment-empty">Loading comments…</p></div>
+      </div>
+    </section>
   </main>
 
   <!-- AUTH MODAL -->
@@ -285,6 +311,7 @@
       if (titleElement) {
         titleElement.textContent = title;
       }
+      if (window.selectCommentGame) window.selectCommentGame(title);
 
       if (player) {
         player.scrollIntoView({ behavior: 'smooth', block: 'start' });
